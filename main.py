@@ -1,36 +1,27 @@
 from flask import Flask, request
 import os
 
-app = Flask(__name__)  # השורה הזו חסרה לך!
+app = Flask(__name__)
 
-# כאן מגיע כל שאר הקוד שסטיץ' נתן לך...
+# זה ה-Webhook - ה"דלת" שדרכה מטא נכנסת
+@app.route('/webhook', methods=['GET', 'POST'])
+def webhook():
+    if request.method == 'GET':
+        # שלב האימות מול מטא
+        verify_token = os.environ.get('VERIFY_TOKEN')
+        mode = request.args.get('hub.mode')
+        token = request.args.get('hub.verify_token')
+        challenge = request.args.get('hub.challenge')
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
-import os
-import sys
+        if mode == 'subscribe' and token == verify_token:
+            return challenge, 200
+        return 'Forbidden', 403
 
-# {{DATA:TEXT:TEXT_68}} logic starts here
-def main_execution_engine():
-    """
-    Core social engine process
-    """
-    print("Initializing kinetic current...")
-    
-    # Placeholder for provided data
-    data_stream = "{{DATA:TEXT:TEXT_68}}"
-    
-    for line in data_stream.split('\n'):
-        if line:
-            process_node(line)
-
-def process_node(val):
-    return f"Processed: {val}"
-
-if __name__ == "__main__":
-    main_execution_engine()
-    import os
+    if request.method == 'POST':
+        # כאן הבוט יקבל את ההודעות מהלקוחות בעתיד
+        data = request.get_json()
+        print(f"Received message: {data}")
+        return 'OK', 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
