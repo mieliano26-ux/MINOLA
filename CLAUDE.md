@@ -23,7 +23,7 @@ There are no tests or a linter configured in this project.
 
 ## Environment Variables
 
-The app reads three env vars at runtime — these must be set before running:
+The app reads four env vars at runtime — these must be set before running:
 
 | Variable | Purpose |
 |---|---|
