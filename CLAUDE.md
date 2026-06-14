@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Language
+
+**ALWAYS respond to the user in Hebrew (עברית).** All chat replies, explanations, and questions to the user must be written in Hebrew, regardless of the language of the code, comments, or this file. Code, identifiers, and commit messages stay in their natural language (usually English), but everything addressed to the user is in Hebrew.
+
 ## What This Is
 
 A WhatsApp chatbot built with Flask and the Meta WhatsApp Business API (Cloud API v17.0). The bot runs a Hebrew-language "mystery/reveal" game: users trigger a guessing game by messaging trigger words, and the bot counts guesses before revealing an answer. It is deployed on a platform like Render or Railway (uses a `PORT` env var).
