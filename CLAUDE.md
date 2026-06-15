@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Language / שפה
 
-**Always respond to the user in Hebrew (עברית), even when they write in English or mix languages.** All chat replies to the user must be in Hebrew. (Code, commit messages, and file contents stay in their natural language — only the conversational replies are in Hebrew.)
+**Always respond to the user in Hebrew (עברית), even when they write in English or mix languages.** All chat replies to the user must be in Hebrew. (Code and commit messages should remain in English, while conversational replies and user-facing game content are in Hebrew.)
 
 ## What This Is
 
