@@ -486,10 +486,13 @@ function showQuestion(idx) {
 }
 
 function handleAnswer(key, value, clickedBtn) {
+  if (qOpts.style.pointerEvents === 'none') return;
+  qOpts.style.pointerEvents = 'none';
   answers[key] = value;
   qOpts.querySelectorAll('.q-opt').forEach(b => b.classList.remove('active'));
   clickedBtn.classList.add('active');
   setTimeout(() => {
+    qOpts.style.pointerEvents = '';
     if (qIndex < QUESTIONS.length - 1) showQuestion(qIndex + 1);
     else loadResults();
   }, 220);
@@ -538,7 +541,7 @@ async function loadResults() {
 
 function renderResults() {
   const cats = RECIPIENT_CATS[answers.recipient] || [];
-  function priceN(s){var m=String(s ?? '').replace(/[^0-9]/g,'');return m?parseInt(m):null;}
+  function priceN(s){var m=String(s ?? '').match(/\d+/);return m?parseInt(m[0],10):null;}
   function inBudget(it){var b=answers.budget;if(!b||b==='any')return true;var n=priceN(it.price);if(n===null)return true;if(b==='low')return n<=50;if(b==='mid')return n>50&&n<=100;if(b==='high')return n>100&&n<=150;if(b==='premium')return n>150;return true;}
   const filtered = allItems.filter(item => {
     if (!item.showClient) return false;
