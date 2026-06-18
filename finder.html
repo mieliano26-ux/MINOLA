@@ -358,7 +358,7 @@ body{display:flex;align-items:flex-start;justify-content:center;}
 
 <script>
 // ── CONSTANTS ──
-const WA = '972502733773';
+const WA = window.MINOLA_PHONE || '972502733773';
 
 const QUESTIONS = [
   {
@@ -521,7 +521,12 @@ async function loadResults() {
   updateWA();
 
   try {
-    if (!allItems.length) { allItems = window.MINOLA_ITEMS || []; }
+    if (!allItems || !allItems.length) {
+      allItems = window.MINOLA_ITEMS;
+      if (!allItems || !allItems.length) {
+        throw new Error('Catalog data is missing');
+      }
+    }
     renderResults();
   } catch(e) {
     loadingEl.classList.add('hidden');
@@ -533,7 +538,7 @@ async function loadResults() {
 
 function renderResults() {
   const cats = RECIPIENT_CATS[answers.recipient] || [];
-  function priceN(s){var m=String(s||'').replace(/[^0-9]/g,'');return m?parseInt(m):null;}
+  function priceN(s){var m=String(s ?? '').replace(/[^0-9]/g,'');return m?parseInt(m):null;}
   function inBudget(it){var b=answers.budget;if(!b||b==='any')return true;var n=priceN(it.price);if(n===null)return true;if(b==='low')return n<=50;if(b==='mid')return n>50&&n<=100;if(b==='high')return n>100&&n<=150;if(b==='premium')return n>150;return true;}
   const filtered = allItems.filter(item => {
     if (!item.showClient) return false;
@@ -555,7 +560,7 @@ function renderResults() {
     card.dataset.id = item.id;
     const title = esc(item.title || item.productCategory || 'מתנה');
     const cat   = esc(item.productCategory || '');
-    const thumb = item.thumbnailUrl || '';
+    const thumb = esc(item.thumbnailUrl || '');
     card.innerHTML =
       '<div class="prod-thumb">' +
         (thumb ? '<img src="' + thumb + '" alt="' + title + '" loading="lazy">' : '') +
