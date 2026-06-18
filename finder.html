@@ -563,7 +563,7 @@ function renderResults() {
     const thumb = esc(item.thumbnailUrl || '');
     card.innerHTML =
       '<div class="prod-thumb">' +
-        (thumb ? '<img src="' + thumb + '" alt="' + title + '" loading="lazy">' : '') +
+        '<img src="' + (thumb || window.MINOLA_LOGO) + '" alt="' + title + '" loading="lazy" onerror="this.onerror=null;this.src=window.MINOLA_LOGO">' +
       '</div>' +
       '<div class="prod-info">' +
         '<div class="prod-top">' +
