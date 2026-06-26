@@ -143,6 +143,18 @@ nav.tabbar{
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .streak-line{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin:0 2px 14px;}
 .streak-line b{color:var(--rose-deep);}
+.scale-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.scale-label{font-weight:700;font-size:15px;}
+.scale{display:flex;gap:7px;}
+.scale-dot{width:38px;height:38px;border-radius:12px;background:var(--cream-2);color:var(--muted);font-weight:700;font-size:15px;display:grid;place-items:center;}
+.scale-dot.on{background:linear-gradient(135deg,var(--rose),var(--purple));color:#fff;box-shadow:0 3px 10px rgba(167,139,196,.35);}
+.tip-list{display:flex;flex-direction:column;gap:11px;}
+.tip-row{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;line-height:1.45;}
+.tip-row > span{font-size:19px;flex:none;}
+.tip-row b{font-weight:700;}
+.crisis3{display:flex;flex-direction:column;gap:9px;}
+.crisis-item{display:flex;align-items:center;gap:11px;justify-content:center;background:rgba(255,255,255,.7);border-radius:14px;padding:13px;font-size:16.5px;font-weight:700;}
+.crisis-item span{font-size:21px;}
 
 /* food / list options */
 .opt-list{display:flex;flex-direction:column;gap:10px;}
@@ -239,7 +251,7 @@ textarea.field{resize:none;min-height:64px;}
   <!-- ============ NOAM ============ -->
   <section class="screen" id="scr-noam">
     <h2 class="scr-title">נועם 📖</h2>
-    <p class="scr-sub">תרגול קריאה עדין. 7 דקות, בלי מבחן, בלי ריב.</p>
+    <p class="scr-sub">תרגול קריאה עדין. 10 דקות, בלי מבחן, בלי ריב.</p>
     <div id="noamBody"></div>
   </section>
 
@@ -253,7 +265,7 @@ textarea.field{resize:none;min-height:64px;}
   <!-- sub screens (reached from "more") -->
   <section class="screen" id="scr-food">
     <h2 class="scr-title">אוכל 🍳</h2>
-    <p class="scr-sub">מה מתאים להיום? תבחרי רמה והאפליקציה תציע.</p>
+    <p class="scr-sub">קודם התפריט הקבוע של היום. אין כוח? יש 3 רמות גיבוי.</p>
     <div id="foodBody"></div>
   </section>
 
@@ -314,6 +326,7 @@ function freshDaily(){
   return {
     date: todayStr(),
     mode: null,                 // 'regular' | 'hard' | 'emergency'
+    mood: null, energy: null,   // 1..5 quick check at day opening
     tasks: {home:false, money:false, kids:false},
     eased: {home:false, money:false, kids:false},
     skipped:{home:false, money:false, kids:false},
@@ -515,7 +528,18 @@ function renderToday(){
   if(!S.daily.mode){
     body.innerHTML = `
       <h2 class="scr-title">בוקר טוב 🌤️</h2>
-      <p class="scr-sub">לפני הכל — איזה יום זה היום? אין תשובה לא נכונה.</p>
+      <p class="scr-sub">לפני הכל — בדיקה קצרה. אין תשובה לא נכונה.</p>
+      <div class="card">
+        <div class="scale-row">
+          <span class="scale-label">😊 מצב רוח</span>
+          <div class="scale">${scaleBtns('mood')}</div>
+        </div>
+        <div class="scale-row" style="margin-top:12px">
+          <span class="scale-label">🔋 אנרגיה</span>
+          <div class="scale">${scaleBtns('energy')}</div>
+        </div>
+      </div>
+      <p class="scr-sub" style="margin-top:18px">איזה יום זה היום?</p>
       <div class="day-opts">
         <button class="day-opt m-regular" onclick="setMode('regular')">
           <span class="e">🟢</span>
@@ -541,11 +565,13 @@ function renderToday(){
     emergency:`<div class="daymode-banner dm-emergency">🔴 יום חירום — משימה אחת = הצלחה<button class="chg" onclick="changeMode()">שינוי</button></div>`
   };
   const doneCount = ['home','money','kids'].filter(c=>S.daily.tasks[c]).length;
-  const streakHTML = `<div class="streak-line">🔥 רצף: <b>${S.streak||0}</b> ימים · היום בוצעו <b>${doneCount}/3</b></div>`;
+  const me = (S.daily.mood||S.daily.energy)
+    ? ` · 😊 ${S.daily.mood||'–'}/5 · 🔋 ${S.daily.energy||'–'}/5` : '';
+  const streakHTML = `<div class="streak-line">🔥 רצף: <b>${S.streak||0}</b> ימים · בוצעו <b>${doneCount}/3</b>${me}</div>`;
 
   const h = homeTask();
   const m = moneyAction();
-  const kids = {name:"קריאה עם נועם", full:"7 דקות קריאה + מדבקה", easy:"רק 3 דקות, או רק להקריא לו את", t:"7 דק׳"};
+  const kids = {name:"קריאה עם נועם", full:"10 דקות קריאה + מדבקה", easy:"רק 3 דקות, או רק להקריא לו את", t:"10 דק׳"};
 
   let emgLink = mode==='emergency'
     ? `<button class="btn btn-block btn-skip btn-lg" style="margin-top:4px" onclick="go('emergency')">אני מרגישה שאני קורסת — למסך חירום</button>` : '';
@@ -566,6 +592,18 @@ function setMode(mode){
   toast(msg);
 }
 function changeMode(){ S.daily.mode=null; save(); renderAll(); }
+function scaleBtns(key){
+  let h="";
+  for(let n=1;n<=5;n++){
+    const on = S.daily[key]===n;
+    h += `<button class="scale-dot ${on?'on':''}" onclick="setScale('${key}',${n})">${n}</button>`;
+  }
+  return h;
+}
+function setScale(key,n){
+  S.daily[key] = (S.daily[key]===n ? null : n);
+  save(); renderToday();
+}
 
 /* =========================================================
    RENDER — MONEY / HOME (full screens)
@@ -627,7 +665,7 @@ function renderHome(){
 /* =========================================================
    RENDER — NOAM (reading + timer + stickers)
    ========================================================= */
-let timer = {sec:7*60, id:null, running:false};
+let timer = {sec:10*60, id:null, running:false};
 function fmt(s){ const m=Math.floor(s/60), ss=s%60; return m+":"+(ss<10?"0":"")+ss; }
 function tick(){
   if(timer.sec<=0){ stopTimer(true); return; }
@@ -646,18 +684,18 @@ function pauseTimer(){
 }
 function toggleTimer(){ timer.running?pauseTimer():startTimer(); }
 function resetTimer(){
-  pauseTimer(); timer.sec=7*60;
+  pauseTimer(); timer.sec=10*60;
   const num=document.getElementById('timerNum'), btn=document.getElementById('timerBtn');
   if(num) num.textContent=fmt(timer.sec);
-  if(btn) btn.textContent="התחילי 7 דקות ▶";
+  if(btn) btn.textContent="התחילי 10 דקות ▶";
 }
 function stopTimer(finished){
   pauseTimer();
   if(finished){
-    toast("7 דקות — כל הכבוד לשניכם 💜");
+    toast("10 דקות — כל הכבוד לשניכם 💜");
     document.getElementById('timerNum').textContent="0:00";
-    document.getElementById('timerBtn').textContent="שוב 7 דקות ▶";
-    timer.sec=7*60;
+    document.getElementById('timerBtn').textContent="שוב 10 דקות ▶";
+    timer.sec=10*60;
   }
 }
 function toggleCheck(k){
@@ -703,11 +741,21 @@ function renderNoam(){
     <div class="card">
       <div class="timer-ring">
         <div class="timer-num" id="timerNum">${fmt(timer.sec)}</div>
-        <div class="timer-sub">קוראים יחד 7 דקות. נעצרים מתי שצריך.</div>
+        <div class="timer-sub">קוראים יחד 10 דקות. נעצרים מתי שצריך.</div>
       </div>
       <div style="display:flex;gap:9px">
-        <button class="btn btn-primary" id="timerBtn" onclick="toggleTimer()">${timer.running?'עצרי ⏸':(timer.sec===7*60?'התחילי 7 דקות ▶':'המשך ▶')}</button>
+        <button class="btn btn-primary" id="timerBtn" onclick="toggleTimer()">${timer.running?'עצרי ⏸':(timer.sec===10*60?'התחילי 10 דקות ▶':'המשך ▶')}</button>
         <button class="btn btn-ghost" onclick="resetTimer()">אפס</button>
+      </div>
+    </div>
+
+    <div class="card" style="background:linear-gradient(180deg,var(--purple-soft),var(--card))">
+      <div class="section-title" style="margin-top:0">איך קוראים יחד 💜</div>
+      <div class="tip-list">
+        <div class="tip-row"><span>🔁</span><div><b>אני שורה, אתה שורה</b> — את מקריאה שורה, הוא שורה. מוריד ממנו את הלחץ.</div></div>
+        <div class="tip-row"><span>✏️</span><div><b>לא מתקנים באמצע</b> — מסמנים את המילה בעיפרון, חוזרים אליה בעדינות בסוף.</div></div>
+        <div class="tip-row"><span>📚</span><div>קומיקס, שלטים בדרך, מתכון — לא ספר לימוד.</div></div>
+        <div class="tip-row"><span>🤍</span><div>בסוף שואלים רק <b>"על מה היה?"</b> — אם הבין את הרעיון, הצלחנו. בלי מבחן.</div></div>
       </div>
     </div>
 
@@ -750,12 +798,30 @@ const FOOD = {
   basic:{label:"אוכל בסיסי",emoji:"🍲",items:["אורז + עוף","קציצות + פסטה","פתיתים + טונה/ביצים","קוסקוס + ירקות"]},
   emerg:{label:"אוכל חירום",emoji:"🆘",items:["קורנפלקס / יוגורט","טוסט","פיתה עם משהו","ירקות חתוכים","להזמין משהו פשוט"]}
 };
+// Fixed weekly lunch menu (doc, part 8) — same every week, no deciding. Index = getDay() 0=Sun..6=Sat
+const WEEK_MENU = [
+  {day:"ראשון",  meal:"שניצל + אורז + מלפפון/עגבנייה", tip:"מבשלים מנה כפולה — חצי לפריזר"},
+  {day:"שני",    meal:"פסטה ברוטב עגבניות + גבינה מגוררת", tip:"רוטב מאתמול או קנוי"},
+  {day:"שלישי",  meal:"שאריות / טוסט + ביצה + סלט קצוץ", tip:"יום ניקוי מקרר"},
+  {day:"רביעי",  meal:"אורז משאריות + קציצות/ירקות מהפריזר", tip:"אפס בישול חדש"},
+  {day:"חמישי",  meal:"פיצות פיתה (פיתה+רוטב+גבינה)", tip:"הילדים מכינים לבד, 10 דק׳ תנור"},
+  {day:"שישי",   meal:"ערב שבת קל: חביתה / שקשוקה / לחם וגבינות", tip:"בלי מאמץ"},
+  {day:"שבת",    meal:"שאריות / משהו קל", tip:"מנוחה — לא מבשלים"}
+];
 let foodSel="fast";
 function pickFood(k){ foodSel=k; renderFood(); }
 function renderFood(){
   const f = FOOD[foodSel];
   const suggestion = f.items[Math.floor((Date.now()/3600000)%f.items.length)];
-  document.getElementById('foodBody').innerHTML = `
+  const wm = WEEK_MENU[new Date().getDay()];
+  const weekHTML = `
+    <div class="card" style="background:linear-gradient(180deg,var(--gold-soft),var(--card))">
+      <div class="task-cat">תפריט קבוע · יום ${wm.day}</div>
+      <div style="font-size:20px;font-weight:700;margin:4px 0 6px">${wm.meal}</div>
+      <div class="muted tiny">💡 ${wm.tip}</div>
+    </div>
+    <p class="scr-sub" style="margin:4px 2px 8px">אין כוח לתפריט הקבוע? תבחרי רמה:</p>`;
+  document.getElementById('foodBody').innerHTML = weekHTML + `
     <div class="seg">
       <button class="${foodSel==='fast'?'active':''}" onclick="pickFood('fast')">⚡ מהיר</button>
       <button class="${foodSel==='basic'?'active':''}" onclick="pickFood('basic')">🍲 בסיסי</button>
@@ -783,7 +849,7 @@ const SUMMER = [
   {t:"משימת בית קטנה",s:"כל ילד דבר אחד קטן. לא יותר."},
   {t:"מסכים מוגבלים",s:"חלון מסכים אחד מוסכם מראש."},
   {t:"פעילות פשוטה",s:"משחק/יצירה/חצר. לא צריך מושלם."},
-  {t:"קריאה קצרה לנועם",s:"7 דקות — מהמסך של נועם."},
+  {t:"קריאה קצרה לנועם",s:"10 דקות — מהמסך של נועם."},
   {t:"יציאה קטנה אם אפשר",s:"גינה, חנות, סיבוב. גם 20 דקות בחוץ עוזר."},
   {t:"ערב סגירה",s:"מקלחת, סיפור, אורות כבים. סוגרים יום."}
 ];
@@ -879,7 +945,18 @@ function renderDecision(){
    ========================================================= */
 function renderEmergency(){
   document.getElementById('emergencyBody').innerHTML = `
-    <p class="scr-sub" style="margin-bottom:14px">היום לא מתקנים את החיים. רק מונעים קריסה. ארבעה דברים, זהו.</p>
+    <div class="card" style="background:linear-gradient(180deg,var(--rose-soft),var(--card));text-align:center">
+      <div class="task-cat">חוק הקריסה</div>
+      <div style="font-size:18px;font-weight:700;margin:6px 0 12px">ביום קריסה — 3 דברים בלבד:</div>
+      <div class="crisis3">
+        <div class="crisis-item"><span>🧒</span>הילדים אכלו</div>
+        <div class="crisis-item"><span>🍎</span>את אכלת</div>
+        <div class="crisis-item"><span>🛟</span>כולם בטוחים</div>
+      </div>
+      <div class="muted" style="font-size:14px;margin-top:12px">אם זה קרה — <b>היום הצליח</b>. נקודה.</div>
+    </div>
+
+    <p class="scr-sub" style="margin-bottom:14px">ואם יש עוד טיפת כוח — רק את אלה, לפי הסדר:</p>
     <div class="emergency-wrap">
       <div class="emg-item"><span class="e">💧</span>מים — לשתות כוס עכשיו</div>
       <div class="emg-item"><span class="e">🍎</span>אוכל קטן — משהו פשוט, גם קר</div>
@@ -887,7 +964,11 @@ function renderEmergency(){
       <div class="emg-item"><span class="e">💛</span>פעולה כסף מינימלית — רק אם יש כוח</div>
       <div class="emg-note">היום לא מתקנים את החיים — רק מונעים קריסה.<br>מחר זה כבר יום אחר. 🤍</div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card">
+      <div class="section-title" style="margin-top:0">שאר ההחלטות — לא היום</div>
+      <p class="muted tiny" style="margin:0">החלטות כספיות או גדולות לא מחליטים ביום רע. רושמים את הדאגה בצד, מטפלים ביום שיש בו כוח.</p>
+    </div>
+    <div class="card">
       <button class="btn btn-soft btn-block" onclick="setMode('emergency');go('today')">סמני שהיום הוא יום חירום</button>
     </div>`;
 }
@@ -898,7 +979,7 @@ function renderEmergency(){
 function renderMore(){
   document.getElementById('moreBody').innerHTML = `
     <div class="card" style="padding:8px">
-      ${moreItem('food','🍳','אוכל','3 רמות, הצעה אחת בכל פעם')}
+      ${moreItem('food','🍳','אוכל','תפריט שבועי קבוע + 3 רמות גיבוי')}
       ${moreItem('summer','☀️','חופש גדול','שגרת יום רגועה לילדים')}
       ${moreItem('decision','🧭','קבלת החלטות','תקועה? נסגור ונקבע')}
       ${moreItem('emergency','🆘','חירום','כשקורסים — רק לא ליפול')}
