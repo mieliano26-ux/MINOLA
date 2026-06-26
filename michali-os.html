@@ -298,8 +298,10 @@ function todayStr(){
   const d = new Date();
   return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
 }
-function dayNumber(){ // integer day index for deterministic daily picks
-  return Math.floor(Date.now()/86400000);
+function dayNumber(){ // integer day index for deterministic daily picks (local-time based)
+  const d = new Date();
+  const localMs = Date.now() - (d.getTimezoneOffset() * 60000);
+  return Math.floor(localMs/86400000);
 }
 function isYesterday(dateStr){
   if(!dateStr) return false;
@@ -363,8 +365,8 @@ function rolloverDay(){
       S.daysActive = (S.daysActive||0)+1;
       if(S.streak > (S.bestStreak||0)) S.bestStreak = S.streak;
     } else {
-      // a fully empty day breaks streak, but we never punish — just reset to 0
-      if(!isYesterday(prev.date)) {/* gap */}
+      // a fully empty day breaks the streak, but we never punish — just reset to 0
+      S.streak = 0;
     }
   }
   S.daily = freshDaily();
@@ -639,13 +641,15 @@ function startTimer(){
 }
 function pauseTimer(){
   timer.running=false; clearInterval(timer.id);
-  document.getElementById('timerBtn').textContent="המשך ▶";
+  const btn=document.getElementById('timerBtn');
+  if(btn) btn.textContent="המשך ▶";
 }
 function toggleTimer(){ timer.running?pauseTimer():startTimer(); }
 function resetTimer(){
   pauseTimer(); timer.sec=7*60;
-  document.getElementById('timerNum').textContent=fmt(timer.sec);
-  document.getElementById('timerBtn').textContent="התחילי 7 דקות ▶";
+  const num=document.getElementById('timerNum'), btn=document.getElementById('timerBtn');
+  if(num) num.textContent=fmt(timer.sec);
+  if(btn) btn.textContent="התחילי 7 דקות ▶";
 }
 function stopTimer(finished){
   pauseTimer();
@@ -918,7 +922,9 @@ function moreItem(scr,e,t,s){
 }
 function hardReset(){
   if(confirm("למחוק את כל הנתונים ולהתחיל מחדש? אי אפשר לבטל.")){
-    localStorage.removeItem(STORE_KEY); S=defaultState(); save(); renderAll(); go('today');
+    localStorage.removeItem(STORE_KEY); S=defaultState(); save();
+    resetTimer();
+    renderAll(); go('today');
     toast("התחלנו מחדש 🤍");
   }
 }
@@ -982,7 +988,7 @@ renderToday();
 setInterval(()=>{
   if(S.daily.date!==todayStr()){ rolloverDay(); renderAll(); }
   const active=document.querySelector('.screen.active');
-  if(active && active.id==='scr-decision') renderDecision();
+  if(active && active.id==='scr-decision' && S.decision && S.decision.lockedUntil > Date.now()) renderDecision();
 }, 30000);
 </script>
 </body>
