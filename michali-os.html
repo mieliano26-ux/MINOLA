@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#F3E6DC">
+<title>מיכלי OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FAF5EF;
+  --cream-2:#F3E9DF;
+  --card:#FFFDFB;
+  --rose:#E7A8BC;
+  --rose-soft:#F6E0E7;
+  --rose-deep:#C77B92;
+  --purple:#A78BC4;
+  --purple-soft:#EDE6F4;
+  --purple-deep:#7E61A3;
+  --gold:#D9B871;
+  --gold-soft:#F3E8CF;
+  --ink:#403A47;
+  --muted:#8A8290;
+  --line:#EBE2D8;
+  --green:#8FBF9F;
+  --green-deep:#5E9173;
+  --shadow:0 6px 22px rgba(120,100,130,.10);
+  --shadow-sm:0 3px 10px rgba(120,100,130,.08);
+  --radius:22px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Assistant','Heebo',system-ui,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  font-size:17px;
+  line-height:1.5;
+  min-height:100vh;
+  overscroll-behavior-y:contain;
+}
+#app{max-width:520px;margin:0 auto;padding:0 0 110px;min-height:100vh;}
+
+/* ===== Header ===== */
+header.topbar{
+  position:sticky;top:0;z-index:50;
+  background:linear-gradient(180deg,var(--cream) 70%,rgba(250,245,239,.6));
+  padding:16px 18px 10px;
+}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.brand{font-weight:700;font-size:21px;letter-spacing:.3px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--rose);box-shadow:0 0 0 4px var(--rose-soft);}
+.score-pill{
+  display:flex;align-items:center;gap:7px;background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:7px 13px;
+  font-weight:700;font-size:15px;box-shadow:var(--shadow-sm);
+}
+.score-pill .star{color:var(--gold);font-size:16px;}
+.rankbar{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 15px;box-shadow:var(--shadow-sm);}
+.rankbar .rank-top{display:flex;justify-content:space-between;align-items:baseline;}
+.rankbar .rank-name{font-weight:700;font-size:16px;}
+.rankbar .rank-num{font-size:13px;color:var(--muted);}
+.progress{height:9px;border-radius:99px;background:var(--cream-2);margin-top:9px;overflow:hidden;}
+.progress > i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--rose),var(--purple));transition:width .5s ease;}
+.rank-hint{font-size:12.5px;color:var(--muted);margin-top:7px;}
+
+/* ===== Screens ===== */
+.screen{display:none;padding:6px 18px 0;animation:fade .35s ease;}
+.screen.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+h2.scr-title{font-size:23px;font-weight:700;margin:14px 2px 4px;}
+.scr-sub{color:var(--muted);font-size:14.5px;margin:0 2px 16px;}
+
+/* ===== Cards / tasks ===== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.task-card{position:relative;overflow:hidden;}
+.task-card.done{background:linear-gradient(180deg,#F2F8F3,#FFFFFF);border-color:#D8EADF;}
+.task-head{display:flex;align-items:center;gap:11px;margin-bottom:4px;}
+.task-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:21px;flex:none;}
+.ico-home{background:var(--rose-soft);}
+.ico-money{background:var(--gold-soft);}
+.ico-kids{background:var(--purple-soft);}
+.task-cat{font-size:12.5px;color:var(--muted);font-weight:600;}
+.task-name{font-size:18.5px;font-weight:700;line-height:1.3;}
+.task-meta{display:flex;gap:8px;align-items:center;margin:8px 0 14px;flex-wrap:wrap;}
+.chip{font-size:12.5px;background:var(--cream-2);border-radius:99px;padding:4px 11px;color:var(--ink);font-weight:600;}
+.chip.time::before{content:"⏱ ";}
+.task-actions{display:flex;flex-wrap:wrap;gap:9px;}
+.done-badge{position:absolute;top:14px;left:14px;background:var(--green);color:#fff;font-size:12.5px;font-weight:700;padding:4px 11px;border-radius:99px;}
+
+/* ===== Buttons ===== */
+button{font-family:inherit;cursor:pointer;border:none;}
+.btn{border-radius:14px;padding:13px 16px;font-size:16px;font-weight:700;transition:transform .08s ease,box-shadow .2s,background .2s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff;box-shadow:0 4px 14px rgba(199,123,146,.35);flex:1;min-width:120px;}
+.btn-done{background:linear-gradient(135deg,var(--green),var(--green-deep));color:#fff;box-shadow:0 4px 14px rgba(94,145,115,.3);flex:1;min-width:110px;}
+.btn-soft{background:var(--purple-soft);color:var(--purple-deep);}
+.btn-ghost{background:var(--cream-2);color:var(--ink);}
+.btn-skip{background:transparent;color:var(--muted);border:1px dashed var(--line);}
+.btn-block{width:100%;}
+.btn-lg{padding:16px;font-size:17.5px;}
+.btn[disabled]{opacity:.55;pointer-events:none;}
+
+/* ===== Day mode selector ===== */
+.day-opts{display:flex;flex-direction:column;gap:12px;margin-top:6px;}
+.day-opt{display:flex;align-items:center;gap:14px;background:var(--card);border:2px solid var(--line);border-radius:var(--radius);padding:17px;text-align:right;width:100%;transition:.18s;}
+.day-opt:active{transform:scale(.98);}
+.day-opt .e{font-size:30px;flex:none;}
+.day-opt .t b{display:block;font-size:18px;font-weight:700;}
+.day-opt .t span{font-size:13.5px;color:var(--muted);}
+.day-opt.m-regular{border-color:var(--green);}
+.day-opt.m-hard{border-color:var(--gold);}
+.day-opt.m-emergency{border-color:var(--rose);}
+
+.daymode-banner{display:flex;align-items:center;gap:10px;border-radius:16px;padding:11px 14px;font-size:14px;font-weight:600;margin-bottom:14px;}
+.dm-regular{background:#EFF6F1;color:var(--green-deep);}
+.dm-hard{background:var(--gold-soft);color:#9A7B26;}
+.dm-emergency{background:var(--rose-soft);color:var(--rose-deep);}
+.daymode-banner .chg{margin-inline-start:auto;font-size:12.5px;background:rgba(255,255,255,.6);border-radius:99px;padding:4px 10px;}
+
+/* ===== Bottom nav ===== */
+nav.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  max-width:520px;margin:0 auto;
+  background:rgba(255,253,251,.93);backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+}
+.tab{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);font-weight:600;padding:5px 6px;border-radius:12px;min-width:54px;}
+.tab .ti{font-size:21px;line-height:1;}
+.tab.active{color:var(--rose-deep);}
+.tab.active .ti{transform:translateY(-1px);}
+
+/* ===== Misc ===== */
+.section-title{font-size:15px;font-weight:700;margin:18px 2px 8px;color:var(--ink);}
+.muted{color:var(--muted);}
+.center{text-align:center;}
+.big-emoji{font-size:46px;text-align:center;margin:6px 0;}
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:99px;font-weight:600;font-size:15px;opacity:0;pointer-events:none;transition:.3s;z-index:200;box-shadow:var(--shadow);max-width:90%;text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.streak-line{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin:0 2px 14px;}
+.streak-line b{color:var(--rose-deep);}
+
+/* food / list options */
+.opt-list{display:flex;flex-direction:column;gap:10px;}
+.opt-row{display:flex;align-items:center;gap:10px;background:var(--cream-2);border-radius:14px;padding:12px 14px;font-weight:600;font-size:15.5px;}
+.opt-row .e{font-size:20px;}
+
+.seg{display:flex;gap:8px;margin-bottom:14px;}
+.seg button{flex:1;background:var(--cream-2);border-radius:13px;padding:11px 6px;font-weight:700;font-size:14px;color:var(--muted);}
+.seg button.active{background:var(--ink);color:#fff;}
+
+/* timer */
+.timer-ring{text-align:center;margin:10px 0 18px;}
+.timer-num{font-size:54px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:1px;}
+.timer-sub{color:var(--muted);font-size:14px;}
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 4px;}
+.check-btn{background:var(--cream-2);border-radius:14px;padding:13px;font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:7px;}
+.check-btn.on{background:var(--purple-soft);color:var(--purple-deep);box-shadow:inset 0 0 0 2px var(--purple);}
+
+.stickers{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.sticker{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:18px;background:var(--cream-2);border:1px dashed var(--line);}
+.sticker.filled{background:var(--gold-soft);border-style:solid;border-color:var(--gold);}
+
+/* decision */
+.field{width:100%;border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-family:inherit;font-size:16px;background:var(--card);margin-bottom:10px;color:var(--ink);}
+textarea.field{resize:none;min-height:64px;}
+.crit-opt{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;font-weight:600;font-size:15px;width:100%;text-align:right;margin-bottom:9px;}
+.crit-opt.sel{border-color:var(--purple);background:var(--purple-soft);}
+.decision-locked{background:linear-gradient(135deg,var(--purple-soft),var(--rose-soft));border:none;text-align:center;padding:24px 18px;}
+.decision-locked .res{font-size:22px;font-weight:700;margin:8px 0;}
+.lock-timer{font-size:13.5px;color:var(--muted);margin-top:6px;}
+
+/* emergency screen */
+.emergency-wrap{background:linear-gradient(180deg,var(--rose-soft),var(--cream));border-radius:var(--radius);padding:22px 18px;border:1px solid var(--rose-soft);}
+.emg-item{display:flex;align-items:center;gap:13px;background:rgba(255,255,255,.7);border-radius:16px;padding:15px;margin-bottom:11px;font-size:17px;font-weight:600;}
+.emg-item .e{font-size:24px;}
+.emg-note{text-align:center;font-size:15px;color:var(--rose-deep);font-weight:600;margin-top:14px;line-height:1.55;}
+
+.help-link{display:inline-block;margin-top:4px;color:var(--purple-deep);font-weight:700;font-size:14px;background:none;}
+.divider{height:1px;background:var(--line);margin:18px 0;}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14.5px;}
+.kv:last-child{border:none;}
+.kv b{font-weight:700;}
+.surprise-banner{background:linear-gradient(135deg,var(--gold-soft),var(--rose-soft));border-radius:16px;padding:14px;text-align:center;font-weight:700;color:#9A7B26;margin-top:12px;}
+.tiny{font-size:12.5px;color:var(--muted);}
+.list-routine{counter-reset:step;}
+.routine-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);}
+.routine-item:last-child{border:none;}
+.routine-item .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--purple-soft);color:var(--purple-deep);display:grid;place-items:center;font-weight:700;font-size:13px;}
+.routine-item .rt b{display:block;font-size:15.5px;}
+.routine-item .rt span{font-size:13px;color:var(--muted);}
+.reset-line{text-align:center;margin:22px 0 8px;}
+.reset-line button{background:none;color:var(--muted);font-size:13px;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand"><span class="dot"></span>מיכלי OS</div>
+      <div class="score-pill"><span class="star">★</span><span id="scoreVal">0</span> נק׳</div>
+    </div>
+    <div class="rankbar">
+      <div class="rank-top">
+        <span class="rank-name" id="rankName">מתניעה</span>
+        <span class="rank-num" id="rankNum">דרגה 1</span>
+      </div>
+      <div class="progress"><i id="rankProg" style="width:0%"></i></div>
+      <div class="rank-hint" id="rankHint"></div>
+    </div>
+  </header>
+
+  <!-- ============ TODAY ============ -->
+  <section class="screen active" id="scr-today">
+    <!-- day mode question OR today's tasks injected here -->
+    <div id="todayBody"></div>
+  </section>
+
+  <!-- ============ MONEY ============ -->
+  <section class="screen" id="scr-money">
+    <h2 class="scr-title">כסף 💛</h2>
+    <p class="scr-sub">מטרה אחת: להכניס כסף בלי להיתקע. פעולה אחת ביום, זהו.</p>
+    <div id="moneyBody"></div>
+    <div class="reset-line"><button onclick="newMoneyAction()">לא מתאים לי היום — תני פעולה אחרת</button></div>
+  </section>
+
+  <!-- ============ HOME ============ -->
+  <section class="screen" id="scr-home">
+    <h2 class="scr-title">בית 🏠</h2>
+    <p class="scr-sub">משימה אחת לבית. לא רשימה. רק אחת.</p>
+    <div id="homeBody"></div>
+    <div class="reset-line"><button onclick="newHomeTask()">תני לי משימת בית אחרת</button></div>
+  </section>
+
+  <!-- ============ NOAM ============ -->
+  <section class="screen" id="scr-noam">
+    <h2 class="scr-title">נועם 📖</h2>
+    <p class="scr-sub">תרגול קריאה עדין. 7 דקות, בלי מבחן, בלי ריב.</p>
+    <div id="noamBody"></div>
+  </section>
+
+  <!-- ============ MORE ============ -->
+  <section class="screen" id="scr-more">
+    <h2 class="scr-title">עוד</h2>
+    <p class="scr-sub">כלים לרגעים מסוימים.</p>
+    <div id="moreBody"></div>
+  </section>
+
+  <!-- sub screens (reached from "more") -->
+  <section class="screen" id="scr-food">
+    <h2 class="scr-title">אוכל 🍳</h2>
+    <p class="scr-sub">מה מתאים להיום? תבחרי רמה והאפליקציה תציע.</p>
+    <div id="foodBody"></div>
+  </section>
+
+  <section class="screen" id="scr-summer">
+    <h2 class="scr-title">חופש גדול ☀️</h2>
+    <p class="scr-sub">שגרת יום רגועה לילדים. את לא מנהלת קייטנה.</p>
+    <div id="summerBody"></div>
+  </section>
+
+  <section class="screen" id="scr-decision">
+    <h2 class="scr-title">החלטה 🧭</h2>
+    <p class="scr-sub">תקועה? נסגור החלטה אחת, וננעל אותה ל־24 שעות.</p>
+    <div id="decisionBody"></div>
+  </section>
+
+  <section class="screen" id="scr-emergency">
+    <h2 class="scr-title">חירום 🆘</h2>
+    <div id="emergencyBody"></div>
+  </section>
+</div>
+
+<nav class="tabbar">
+  <button class="tab active" data-scr="today" onclick="go('today')"><span class="ti">🌤️</span>היום</button>
+  <button class="tab" data-scr="home" onclick="go('home')"><span class="ti">🏠</span>בית</button>
+  <button class="tab" data-scr="money" onclick="go('money')"><span class="ti">💛</span>כסף</button>
+  <button class="tab" data-scr="noam" onclick="go('noam')"><span class="ti">📖</span>נועם</button>
+  <button class="tab" data-scr="more" onclick="go('more')"><span class="ti">✨</span>עוד</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   מיכלי OS — מערכת חיים משחקית. הכל מקומי (localStorage).
+   ========================================================= */
+"use strict";
+
+const STORE_KEY = "michali_os_v1";
+
+/* ---------- date helpers ---------- */
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+}
+function dayNumber(){ // integer day index for deterministic daily picks
+  return Math.floor(Date.now()/86400000);
+}
+function isYesterday(dateStr){
+  if(!dateStr) return false;
+  const d = new Date(); d.setDate(d.getDate()-1);
+  return dateStr === (d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate());
+}
+
+/* ---------- default state ---------- */
+function freshDaily(){
+  return {
+    date: todayStr(),
+    mode: null,                 // 'regular' | 'hard' | 'emergency'
+    tasks: {home:false, money:false, kids:false},
+    eased: {home:false, money:false, kids:false},
+    skipped:{home:false, money:false, kids:false},
+    bonusGiven:false,
+    homeIdx:null, moneyIdx:null, // chosen task indices (sticky for the day)
+    noam:{checks:{read:false,answered:false,hard:false,stopped:false}, doneToday:false}
+  };
+}
+function defaultState(){
+  return {
+    score:0,
+    streak:0,
+    bestStreak:0,
+    daysActive:0,
+    noamStickers:0,
+    noamSurprises:0,
+    daily:freshDaily(),
+    decision:null,             // {text, options[], criterion, result, lockedUntil}
+    lastSurpriseAt:0
+  };
+}
+
+/* ---------- load / save ---------- */
+let S;
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    S = raw ? JSON.parse(raw) : defaultState();
+  }catch(e){ S = defaultState(); }
+  // new day rollover
+  if(!S.daily || S.daily.date !== todayStr()){
+    rolloverDay();
+  }
+  // expire decision lock
+  if(S.decision && S.decision.lockedUntil && Date.now() > S.decision.lockedUntil){
+    S.decision = null;
+  }
+}
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+
+function rolloverDay(){
+  const prev = S.daily;
+  // streak logic: success = at least 1 task done (emergency) or counts as active day
+  if(prev && prev.date){
+    const didSomething = prev.tasks.home || prev.tasks.money || prev.tasks.kids;
+    if(didSomething){
+      if(isYesterday(prev.date)) S.streak = (S.streak||0)+1;
+      else S.streak = 1;
+      S.daysActive = (S.daysActive||0)+1;
+      if(S.streak > (S.bestStreak||0)) S.bestStreak = S.streak;
+    } else {
+      // a fully empty day breaks streak, but we never punish — just reset to 0
+      if(!isYesterday(prev.date)) {/* gap */}
+    }
+  }
+  S.daily = freshDaily();
+  save();
+}
+
+/* =========================================================
+   RANKS
+   ========================================================= */
+const RANKS = [
+  {n:"מתניעה",        from:0,   hint:"כל התחלה נחשבת. מספיק לזוז קצת."},
+  {n:"מחזיקה יום",     from:60,  hint:"את מחזיקה ימים. זה כבר הרבה."},
+  {n:"חוזרת למסלול",   from:160, hint:"גם אחרי יום שנפל — את חוזרת."},
+  {n:"מנהלת מערכת",    from:320, hint:"יש לך שליטה על המערכת שלך."},
+  {n:"בונה יציבות",    from:540, hint:"היציבות נבנית. שכבה על שכבה."},
+  {n:"עצמאית יותר",    from:820, hint:"את עומדת על שלך. עצמאית יותר."}
+];
+function rankInfo(){
+  let i=0;
+  for(let k=0;k<RANKS.length;k++){ if(S.score>=RANKS[k].from) i=k; }
+  const cur = RANKS[i];
+  const next = RANKS[i+1];
+  let pct = 100;
+  if(next){
+    pct = Math.round(((S.score-cur.from)/(next.from-cur.from))*100);
+    pct = Math.max(4,Math.min(100,pct));
+  }
+  return {idx:i, cur, next, pct};
+}
+
+/* =========================================================
+   DAILY CONTENT POOLS
+   ========================================================= */
+const HOME_TASKS = [
+  {name:"כיור",            full:"לרוקן ולשטוף את הכיור", easy:"רק את הכלים שמפריעים לך עכשיו", t:"10 דק׳"},
+  {name:"כביסה אחת",       full:"מכונה אחת — להפעיל או לתלות", easy:"רק להכניס ולהפעיל, התלייה אחר כך", t:"7 דק׳"},
+  {name:"שולחן אוכל",      full:"לפנות ולנגב את השולחן", easy:"רק לפנות, בלי לנגב", t:"5 דק׳"},
+  {name:"רצפה באזור אחד",  full:"לשטוף/לטאטא אזור אחד", easy:"רק לאסוף מה שעל הרצפה", t:"8 דק׳"},
+  {name:"שקית זבל",        full:"להוציא זבל ולשים שקית חדשה", easy:"רק לקשור ולהוציא החוצה", t:"4 דק׳"},
+  {name:"קניות בסיסיות",   full:"רשימה קצרה + הזמנה/יציאה", easy:"רק 3 דברים הכי חשובים", t:"20 דק׳"},
+  {name:"ארוחה פשוטה",     full:"להכין ארוחה אחת פשוטה", easy:"משהו מוכן/קר, בלי בישול", t:"15 דק׳"}
+];
+const MONEY_ACTIONS = [
+  {name:"לפרסם סטורי מכירה",   full:"סטורי אחד שמציג מוצר + קריאה לפעולה", easy:"רק תמונה אחת עם משפט קצר", t:"10 דק׳"},
+  {name:"לשלוח הודעה ללקוחה",  full:"לפנות ללקוחה אחת עם הצעה/תזכורת", easy:"הודעה קצרה אחת: ׳עוד רלוונטי לך?׳", t:"5 דק׳"},
+  {name:"להעלות מוצר/שירות",   full:"להעלות מוצר או שירות אחד למכירה", easy:"רק להכין תמונה + שם, לפרסם אחר כך", t:"15 דק׳"},
+  {name:"לתמחר מוצר אחד",      full:"לקבוע מחיר סופי למוצר אחד", easy:"רק לכתוב טווח מחיר משוער", t:"7 דק׳"},
+  {name:"לסיים עיצוב פתוח",    full:"לסגור עיצוב אחד שנשאר באוויר", easy:"להתקדם 10 דקות בעיצוב אחד", t:"15 דק׳"}
+];
+
+function homeTask(){
+  if(S.daily.homeIdx===null){ S.daily.homeIdx = dayNumber() % HOME_TASKS.length; save(); }
+  return HOME_TASKS[S.daily.homeIdx];
+}
+function moneyAction(){
+  if(S.daily.moneyIdx===null){ S.daily.moneyIdx = (dayNumber()*3+1) % MONEY_ACTIONS.length; save(); }
+  return MONEY_ACTIONS[S.daily.moneyIdx];
+}
+function newHomeTask(){
+  S.daily.homeIdx = (S.daily.homeIdx + 1) % HOME_TASKS.length;
+  S.daily.tasks.home=false; S.daily.eased.home=false; S.daily.skipped.home=false;
+  save(); renderAll(); toast("משימת בית חדשה 🏠");
+}
+function newMoneyAction(){
+  S.daily.moneyIdx = (S.daily.moneyIdx + 1) % MONEY_ACTIONS.length;
+  S.daily.tasks.money=false; S.daily.eased.money=false; S.daily.skipped.money=false;
+  save(); renderAll(); toast("פעולת כסף חדשה 💛");
+}
+
+/* =========================================================
+   POINTS
+   ========================================================= */
+const POINTS = {home:10, money:15, kids:10};
+function completeTask(cat){
+  if(S.daily.tasks[cat]) return;
+  S.daily.tasks[cat]=true;
+  S.daily.skipped[cat]=false;
+  S.score += POINTS[cat];
+  // 3-task bonus
+  if(S.daily.tasks.home && S.daily.tasks.money && S.daily.tasks.kids && !S.daily.bonusGiven){
+    S.daily.bonusGiven=true;
+    S.score += 20;
+    save(); renderAll();
+    toast("🎉 כל 3 המשימות! בונוס 20 נקודות");
+    return;
+  }
+  // emergency: one task = success
+  if(S.daily.mode==='emergency'){
+    save(); renderAll();
+    toast("💪 ביום חירום זו כבר הצלחה. +"+POINTS[cat]);
+    return;
+  }
+  save(); renderAll();
+  toast("בוצע! +"+POINTS[cat]+" נקודות");
+}
+function easeTask(cat){
+  S.daily.eased[cat]=true; save(); renderAll();
+  toast("הקטנּו לך את זה 🤍");
+}
+function skipTask(cat){
+  S.daily.skipped[cat]=true; save(); renderAll();
+  toast("דילגת בלי אשמה. זה בסדר גמור.");
+}
+
+/* =========================================================
+   RENDER — TODAY
+   ========================================================= */
+function catLabel(cat){
+  return cat==='home'?'בית':cat==='money'?'כסף':'ילדים / נועם / עצמי';
+}
+function taskCardHTML(cat, ico, icoClass, obj){
+  const done = S.daily.tasks[cat];
+  const eased = S.daily.eased[cat];
+  const skipped = S.daily.skipped[cat];
+  const desc = eased ? obj.easy : obj.full;
+  const time = eased ? "גרסה קלה" : obj.t;
+  let actions = "";
+  if(done){
+    actions = `<button class="btn btn-ghost" onclick="go('${cat==='kids'?'noam':cat}')">למסך ${catLabel(cat).split(' ')[0]}</button>`;
+  } else if(skipped){
+    actions = `<button class="btn btn-done" onclick="completeTask('${cat}')">בעצם עשיתי ✓</button>`;
+  } else {
+    actions = `<button class="btn btn-done" onclick="completeTask('${cat}')">בוצע ✓</button>`;
+    if(!eased) actions += `<button class="btn btn-soft" onclick="easeTask('${cat}')">קטן לי יותר</button>`;
+    if(S.daily.mode==='emergency') actions += `<button class="btn btn-skip" onclick="skipTask('${cat}')">דלג בלי אשמה</button>`;
+  }
+  return `
+  <div class="card task-card ${done?'done':''}">
+    ${done?'<span class="done-badge">✓ בוצע</span>':''}
+    <div class="task-head">
+      <div class="task-ico ${icoClass}">${ico}</div>
+      <div>
+        <div class="task-cat">${catLabel(cat)}</div>
+        <div class="task-name">${obj.name}</div>
+      </div>
+    </div>
+    <div class="muted" style="font-size:14.5px;margin-right:2px">${desc}</div>
+    <div class="task-meta"><span class="chip time">${time}</span>${eased?'<span class="chip">הוקטן 🤍</span>':''}${skipped?'<span class="chip">דולג</span>':''}</div>
+    <div class="task-actions">${actions}</div>
+  </div>`;
+}
+
+function renderToday(){
+  const body = document.getElementById('todayBody');
+  // STEP 1: ask the day-mode question if not chosen today
+  if(!S.daily.mode){
+    body.innerHTML = `
+      <h2 class="scr-title">בוקר טוב 🌤️</h2>
+      <p class="scr-sub">לפני הכל — איזה יום זה היום? אין תשובה לא נכונה.</p>
+      <div class="day-opts">
+        <button class="day-opt m-regular" onclick="setMode('regular')">
+          <span class="e">🟢</span>
+          <span class="t"><b>יום רגיל</b><span>יש לי כוח ל־3 משימות</span></span>
+        </button>
+        <button class="day-opt m-hard" onclick="setMode('hard')">
+          <span class="e">🟡</span>
+          <span class="t"><b>יום קשה</b><span>נעשה הכל בגרסה קטנה</span></span>
+        </button>
+        <button class="day-opt m-emergency" onclick="setMode('emergency')">
+          <span class="e">🔴</span>
+          <span class="t"><b>יום חירום</b><span>רק לא לקרוס. משימה אחת מספיקה</span></span>
+        </button>
+      </div>`;
+    return;
+  }
+
+  // STEP 2: show 3 tasks
+  const mode = S.daily.mode;
+  const banners = {
+    regular:`<div class="daymode-banner dm-regular">🟢 יום רגיל — 3 משימות, בקצב שלך<button class="chg" onclick="changeMode()">שינוי</button></div>`,
+    hard:`<div class="daymode-banner dm-hard">🟡 יום קשה — מותר להקטין כל משימה<button class="chg" onclick="changeMode()">שינוי</button></div>`,
+    emergency:`<div class="daymode-banner dm-emergency">🔴 יום חירום — משימה אחת = הצלחה<button class="chg" onclick="changeMode()">שינוי</button></div>`
+  };
+  const doneCount = ['home','money','kids'].filter(c=>S.daily.tasks[c]).length;
+  const streakHTML = `<div class="streak-line">🔥 רצף: <b>${S.streak||0}</b> ימים · היום בוצעו <b>${doneCount}/3</b></div>`;
+
+  const h = homeTask();
+  const m = moneyAction();
+  const kids = {name:"קריאה עם נועם", full:"7 דקות קריאה + מדבקה", easy:"רק 3 דקות, או רק להקריא לו את", t:"7 דק׳"};
+
+  let emgLink = mode==='emergency'
+    ? `<button class="btn btn-block btn-skip btn-lg" style="margin-top:4px" onclick="go('emergency')">אני מרגישה שאני קורסת — למסך חירום</button>` : '';
+
+  body.innerHTML = banners[mode] + streakHTML +
+    taskCardHTML('home','🏠','ico-home',h) +
+    taskCardHTML('money','💛','ico-money',m) +
+    taskCardHTML('kids','📖','ico-kids',kids) +
+    emgLink +
+    `<div class="reset-line"><button onclick="if(confirm('לסמן את היום מחדש?')){S.daily.tasks={home:false,money:false,kids:false};S.daily.bonusGiven=false;save();renderAll();}">איפוס סימוני היום</button></div>`;
+}
+
+function setMode(mode){
+  S.daily.mode = mode;
+  save(); renderAll();
+  const msg = mode==='regular'?'יום רגיל. קדימה, בקצב שלך 🟢':
+              mode==='hard'?'יום קשה. נעשה הכל קטן 🟡':'יום חירום. רק לא לקרוס 🔴';
+  toast(msg);
+}
+function changeMode(){ S.daily.mode=null; save(); renderAll(); }
+
+/* =========================================================
+   RENDER — MONEY / HOME (full screens)
+   ========================================================= */
+function renderMoney(){
+  const m = moneyAction();
+  const done = S.daily.tasks.money;
+  const eased = S.daily.eased.money;
+  const body = document.getElementById('moneyBody');
+  body.innerHTML = `
+    <div class="card task-card ${done?'done':''}">
+      ${done?'<span class="done-badge">✓ בוצע</span>':''}
+      <div class="task-head">
+        <div class="task-ico ico-money">💛</div>
+        <div><div class="task-cat">הפעולה של היום</div><div class="task-name">${m.name}</div></div>
+      </div>
+      <div class="muted" style="font-size:15px;margin:4px 2px 2px">${eased?m.easy:m.full}</div>
+      <div class="task-meta"><span class="chip time">${eased?'גרסה קלה':m.t}</span><span class="chip">15 נק׳</span></div>
+      <div class="task-actions">
+        ${done
+          ? `<button class="btn btn-ghost btn-block" disabled>הכנסת תנועה היום ✓</button>`
+          : `<button class="btn btn-done" onclick="completeTask('money')">בוצע ✓</button>
+             ${!eased?`<button class="btn btn-soft" onclick="easeTask('money')">קטן לי יותר</button>`:''}`}
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">למה רק פעולה אחת?</div>
+      <p class="muted" style="font-size:14.5px;margin:0">כי כשיש רשימה — נתקעים. פעולה אחת ביום שמכניסה תנועה לעסק עדיפה על תוכנית ענקית שלא קורית. מחר תהיה פעולה אחרת.</p>
+    </div>`;
+}
+
+function renderHome(){
+  const h = homeTask();
+  const done = S.daily.tasks.home;
+  const eased = S.daily.eased.home;
+  const body = document.getElementById('homeBody');
+  body.innerHTML = `
+    <div class="card task-card ${done?'done':''}">
+      ${done?'<span class="done-badge">✓ בוצע</span>':''}
+      <div class="task-head">
+        <div class="task-ico ico-home">🏠</div>
+        <div><div class="task-cat">המשימה של היום</div><div class="task-name">${h.name}</div></div>
+      </div>
+      <div class="muted" style="font-size:15px;margin:4px 2px 2px">${eased?h.easy:h.full}</div>
+      <div class="task-meta"><span class="chip time">${eased?'גרסה קלה':h.t}</span><span class="chip">10 נק׳</span></div>
+      <div class="task-actions">
+        ${done
+          ? `<button class="btn btn-ghost btn-block" disabled>הבית קצת יותר רגוע ✓</button>`
+          : `<button class="btn btn-done" onclick="completeTask('home')">בוצע ✓</button>
+             ${!eased?`<button class="btn btn-soft" onclick="easeTask('home')">קטן לי יותר</button>`:''}`}
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">משימה אחת בלבד</div>
+      <p class="muted" style="font-size:14.5px;margin:0">לא רשימה. אזור אחד, דבר אחד. כשזה נגמר — נגמר. אם בא לך עוד, מעולה, אבל לא חייבים.</p>
+    </div>`;
+}
+
+/* =========================================================
+   RENDER — NOAM (reading + timer + stickers)
+   ========================================================= */
+let timer = {sec:7*60, id:null, running:false};
+function fmt(s){ const m=Math.floor(s/60), ss=s%60; return m+":"+(ss<10?"0":"")+ss; }
+function tick(){
+  if(timer.sec<=0){ stopTimer(true); return; }
+  timer.sec--;
+  document.getElementById('timerNum').textContent = fmt(timer.sec);
+}
+function startTimer(){
+  if(timer.running) return;
+  timer.running=true; timer.id=setInterval(tick,1000);
+  document.getElementById('timerBtn').textContent="עצרי ⏸";
+}
+function pauseTimer(){
+  timer.running=false; clearInterval(timer.id);
+  document.getElementById('timerBtn').textContent="המשך ▶";
+}
+function toggleTimer(){ timer.running?pauseTimer():startTimer(); }
+function resetTimer(){
+  pauseTimer(); timer.sec=7*60;
+  document.getElementById('timerNum').textContent=fmt(timer.sec);
+  document.getElementById('timerBtn').textContent="התחילי 7 דקות ▶";
+}
+function stopTimer(finished){
+  pauseTimer();
+  if(finished){
+    toast("7 דקות — כל הכבוד לשניכם 💜");
+    document.getElementById('timerNum').textContent="0:00";
+    document.getElementById('timerBtn').textContent="שוב 7 דקות ▶";
+    timer.sec=7*60;
+  }
+}
+function toggleCheck(k){
+  S.daily.noam.checks[k] = !S.daily.noam.checks[k];
+  save(); renderNoam();
+}
+function giveSticker(){
+  if(S.daily.noam.doneToday){ toast("כבר קיבל מדבקה היום 😊"); return; }
+  S.daily.noam.doneToday=true;
+  S.noamStickers = (S.noamStickers||0)+1;
+  // points for kids task too if not yet
+  if(!S.daily.tasks.kids) completeTask('kids');
+  if(S.noamStickers>0 && S.noamStickers%10===0){
+    S.noamSurprises=(S.noamSurprises||0)+1;
+    save(); renderAll();
+    toast("⭐ 10 מדבקות! הגיע הזמן להפתעה לנועם");
+    return;
+  }
+  save(); renderAll();
+  toast("מדבקה לנועם ⭐ ("+(S.noamStickers%10)+"/10)");
+}
+
+const NOAM_QUESTIONS = {
+  easy:["מי הדמות הראשית בסיפור?","איפה הסיפור קורה?","מה הצבע של…? (משהו מהסיפור)"],
+  medium:["מה קרה בהתחלה ומה קרה בסוף?","למה הדמות עשתה את זה?","מה היה החלק הכי כיף?"],
+  comp:["מה היית עושה במקום הדמות?","איך הדמות הרגישה? איך אתה יודע?","אם היית ממשיך את הסיפור — מה היה קורה?"]
+};
+function askQuestion(level){
+  const arr = NOAM_QUESTIONS[level];
+  const q = arr[Math.floor((Date.now()/1000)%arr.length)];
+  const labels={easy:"שאלה קלה",medium:"שאלה בינונית",comp:"שאלת הבנה"};
+  toast(labels[level]+": "+q);
+}
+function renderNoam(){
+  const inStickers = S.noamStickers%10;
+  let dots="";
+  for(let i=0;i<10;i++){
+    dots += `<div class="sticker ${i<inStickers?'filled':''}">${i<inStickers?'⭐':''}</div>`;
+  }
+  const c = S.daily.noam.checks;
+  const ck=(k,on,label)=>`<button class="check-btn ${c[k]?'on':''}" onclick="toggleCheck('${k}')">${on} ${label}</button>`;
+  document.getElementById('noamBody').innerHTML = `
+    <div class="card">
+      <div class="timer-ring">
+        <div class="timer-num" id="timerNum">${fmt(timer.sec)}</div>
+        <div class="timer-sub">קוראים יחד 7 דקות. נעצרים מתי שצריך.</div>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn btn-primary" id="timerBtn" onclick="toggleTimer()">${timer.running?'עצרי ⏸':(timer.sec===7*60?'התחילי 7 דקות ▶':'המשך ▶')}</button>
+        <button class="btn btn-ghost" onclick="resetTimer()">אפס</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title" style="margin-top:0">איך הלך? (בלי לחץ)</div>
+      <div class="check-grid">
+        ${ck('read','📖','קרא')}
+        ${ck('answered','💬','ענה')}
+        ${ck('hard','😮‍💨','היה קשה')}
+        ${ck('stopped','🤍','עצרנו בלי ריב')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title" style="margin-top:0">3 שאלות הבנה</div>
+      <p class="muted tiny" style="margin:0 0 10px">לחצי על כפתור — תקבלי שאלה להקריא לנועם. בלי מבחן.</p>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <button class="btn btn-soft btn-block" onclick="askQuestion('easy')">שאלה קלה</button>
+        <button class="btn btn-soft btn-block" onclick="askQuestion('medium')">שאלה בינונית</button>
+        <button class="btn btn-soft btn-block" onclick="askQuestion('comp')">שאלת הבנה</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title" style="margin-top:0">מדבקות נועם ⭐</div>
+      <p class="muted tiny" style="margin:0 0 6px">מדבקה אחת ביום אם שיתף פעולה · 10 מדבקות = הפתעה</p>
+      <div class="stickers">${dots}</div>
+      ${inStickers===0 && S.noamStickers>0 ? `<div class="surprise-banner">🎁 הגיע הזמן להפתעה! (${S.noamSurprises} עד היום)</div>`:''}
+      <button class="btn btn-done btn-block" style="margin-top:14px" onclick="giveSticker()" ${S.daily.noam.doneToday?'disabled':''}>
+        ${S.daily.noam.doneToday?'קיבל מדבקה היום ✓':'תן מדבקה לנועם +'}
+      </button>
+    </div>`;
+}
+
+/* =========================================================
+   RENDER — FOOD
+   ========================================================= */
+const FOOD = {
+  fast:{label:"אוכל מהיר",emoji:"⚡",items:["חביתה + ירקות + לחם","טוסט + ירקות","פסטה פשוטה","שניצלים קפואים + פתיתים"]},
+  basic:{label:"אוכל בסיסי",emoji:"🍲",items:["אורז + עוף","קציצות + פסטה","פתיתים + טונה/ביצים","קוסקוס + ירקות"]},
+  emerg:{label:"אוכל חירום",emoji:"🆘",items:["קורנפלקס / יוגורט","טוסט","פיתה עם משהו","ירקות חתוכים","להזמין משהו פשוט"]}
+};
+let foodSel="fast";
+function pickFood(k){ foodSel=k; renderFood(); }
+function renderFood(){
+  const f = FOOD[foodSel];
+  const suggestion = f.items[Math.floor((Date.now()/3600000)%f.items.length)];
+  document.getElementById('foodBody').innerHTML = `
+    <div class="seg">
+      <button class="${foodSel==='fast'?'active':''}" onclick="pickFood('fast')">⚡ מהיר</button>
+      <button class="${foodSel==='basic'?'active':''}" onclick="pickFood('basic')">🍲 בסיסי</button>
+      <button class="${foodSel==='emerg'?'active':''}" onclick="pickFood('emerg')">🆘 חירום</button>
+    </div>
+    <div class="card center">
+      <div class="big-emoji">${f.emoji}</div>
+      <div class="muted tiny">ההצעה של עכשיו · ${f.label}</div>
+      <div style="font-size:22px;font-weight:700;margin:6px 0 12px">${suggestion}</div>
+      <button class="btn btn-soft" onclick="renderFood()">תני לי משהו אחר 🔄</button>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">כל האפשרויות ב${f.label}</div>
+      <div class="opt-list">
+        ${f.items.map(i=>`<div class="opt-row"><span class="e">•</span>${i}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+/* =========================================================
+   RENDER — SUMMER
+   ========================================================= */
+const SUMMER = [
+  {t:"בוקר רגוע",s:"בלי מרוץ. ארוחת בוקר, להתלבש, נושמים."},
+  {t:"משימת בית קטנה",s:"כל ילד דבר אחד קטן. לא יותר."},
+  {t:"מסכים מוגבלים",s:"חלון מסכים אחד מוסכם מראש."},
+  {t:"פעילות פשוטה",s:"משחק/יצירה/חצר. לא צריך מושלם."},
+  {t:"קריאה קצרה לנועם",s:"7 דקות — מהמסך של נועם."},
+  {t:"יציאה קטנה אם אפשר",s:"גינה, חנות, סיבוב. גם 20 דקות בחוץ עוזר."},
+  {t:"ערב סגירה",s:"מקלחת, סיפור, אורות כבים. סוגרים יום."}
+];
+function renderSummer(){
+  document.getElementById('summerBody').innerHTML = `
+    <div class="card">
+      <div class="list-routine">
+        ${SUMMER.map((x,i)=>`<div class="routine-item"><div class="n">${i+1}</div><div class="rt"><b>${x.t}</b><span>${x.s}</span></div></div>`).join('')}
+      </div>
+    </div>
+    <div class="card center">
+      <p class="muted" style="font-size:14.5px;margin:0">זו מסגרת, לא חוק. אם יום אחד רק חצי מזה קורה — מצוין. את לא מנהלת קייטנה, את אמא.</p>
+    </div>`;
+}
+
+/* =========================================================
+   RENDER — DECISION (with 24h lock)
+   ========================================================= */
+const CRITERIA = [
+  {k:'easy',label:'הכי קל להתחיל',emoji:'🌱'},
+  {k:'money',label:'הכי מכניס כסף',emoji:'💛'},
+  {k:'calm',label:'הכי מרגיע את הבית',emoji:'🏠'},
+  {k:'urgent',label:'הכי דחוף',emoji:'⚡'}
+];
+let dform = {options:["","",""], criterion:null, text:""};
+function setCrit(k){ dform.criterion=k; renderDecision(); }
+function pickForMe(){
+  const opts = dform.options.map(o=>o.trim()).filter(Boolean);
+  if(!dform.text.trim()){ toast("כתבי קודם מה ההחלטה"); return; }
+  if(opts.length<2){ toast("צריך לפחות 2 אפשרויות"); return; }
+  if(!dform.criterion){ toast("בחרי קריטריון אחד"); return; }
+  // deterministic-ish pick by criterion: bias toward first (easiest), last (urgent), etc.
+  let idx;
+  if(dform.criterion==='easy') idx=0;            // first written = usually easiest to start
+  else if(dform.criterion==='urgent') idx=opts.length-1;
+  else idx = Math.floor((Date.now()/1000)%opts.length);
+  const result = opts[idx];
+  S.decision = {
+    text:dform.text.trim(),
+    options:opts,
+    criterion:dform.criterion,
+    result,
+    lockedUntil: Date.now()+24*3600*1000
+  };
+  save(); renderDecision();
+  toast("נסגר ✓ ננעל ל־24 שעות. לא פותחים מחדש 🔒");
+}
+function clearDecision(){
+  if(confirm("לפתוח החלטה חדשה? (הנעילה אמורה להישאר 24 שעות)")){
+    S.decision=null; dform={options:["","",""],criterion:null,text:""}; save(); renderDecision();
+  }
+}
+function critLabel(k){ const c=CRITERIA.find(x=>x.k===k); return c?c.emoji+' '+c.label:''; }
+function renderDecision(){
+  const body=document.getElementById('decisionBody');
+  if(S.decision && S.decision.lockedUntil>Date.now()){
+    const left = S.decision.lockedUntil-Date.now();
+    const hrs = Math.floor(left/3600000), mins=Math.floor((left%3600000)/60000);
+    body.innerHTML = `
+      <div class="card decision-locked">
+        <div class="big-emoji">🔒</div>
+        <div class="muted tiny">ההחלטה: ${S.decision.text}</div>
+        <div class="res">${S.decision.result}</div>
+        <div class="tiny">קריטריון: ${critLabel(S.decision.criterion)}</div>
+        <div class="lock-timer">נעול עוד ${hrs} שע׳ ${mins} דק׳ · אל תפתחי מחדש, את כבר החלטת 🤍</div>
+      </div>
+      <div class="card center">
+        <p class="muted" style="font-size:14.5px;margin:0 0 10px">החלטה אחת ביום מספיקה. עכשיו פשוט להתחיל אותה.</p>
+        <button class="btn btn-skip" onclick="clearDecision()">ביטול הנעילה (רק אם ממש צריך)</button>
+      </div>`;
+    return;
+  }
+  body.innerHTML = `
+    <div class="card">
+      <label class="section-title" style="margin-top:0;display:block">1. כתבי את ההחלטה</label>
+      <textarea class="field" id="dtext" placeholder="למשל: מה לעשות קודם הבוקר?" oninput="dform.text=this.value">${dform.text}</textarea>
+
+      <label class="section-title" style="display:block">2. עד 3 אפשרויות</label>
+      ${[0,1,2].map(i=>`<input class="field" placeholder="אפשרות ${i+1}${i===2?' (לא חובה)':''}" value="${dform.options[i]||''}" oninput="dform.options[${i}]=this.value">`).join('')}
+
+      <label class="section-title" style="display:block">3. בחרי קריטריון אחד</label>
+      ${CRITERIA.map(c=>`<button class="crit-opt ${dform.criterion===c.k?'sel':''}" onclick="setCrit('${c.k}')"><span>${c.emoji}</span>${c.label}</button>`).join('')}
+
+      <button class="btn btn-primary btn-block btn-lg" style="margin-top:8px" onclick="pickForMe()">בחרי בשבילי ✨</button>
+    </div>
+    <div class="card center">
+      <p class="muted tiny" style="margin:0">אחרי הבחירה — נעילה ל־24 שעות. לא חוזרים להתלבט. זה החלק שמשחרר.</p>
+    </div>`;
+}
+
+/* =========================================================
+   RENDER — EMERGENCY
+   ========================================================= */
+function renderEmergency(){
+  document.getElementById('emergencyBody').innerHTML = `
+    <p class="scr-sub" style="margin-bottom:14px">היום לא מתקנים את החיים. רק מונעים קריסה. ארבעה דברים, זהו.</p>
+    <div class="emergency-wrap">
+      <div class="emg-item"><span class="e">💧</span>מים — לשתות כוס עכשיו</div>
+      <div class="emg-item"><span class="e">🍎</span>אוכל קטן — משהו פשוט, גם קר</div>
+      <div class="emg-item"><span class="e">🏠</span>משימה אחת לבית — הכי קטנה שיש</div>
+      <div class="emg-item"><span class="e">💛</span>פעולה כסף מינימלית — רק אם יש כוח</div>
+      <div class="emg-note">היום לא מתקנים את החיים — רק מונעים קריסה.<br>מחר זה כבר יום אחר. 🤍</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <button class="btn btn-soft btn-block" onclick="setMode('emergency');go('today')">סמני שהיום הוא יום חירום</button>
+    </div>`;
+}
+
+/* =========================================================
+   RENDER — MORE (hub)
+   ========================================================= */
+function renderMore(){
+  document.getElementById('moreBody').innerHTML = `
+    <div class="card" style="padding:8px">
+      ${moreItem('food','🍳','אוכל','3 רמות, הצעה אחת בכל פעם')}
+      ${moreItem('summer','☀️','חופש גדול','שגרת יום רגועה לילדים')}
+      ${moreItem('decision','🧭','קבלת החלטות','תקועה? נסגור ונקבע')}
+      ${moreItem('emergency','🆘','חירום','כשקורסים — רק לא ליפול')}
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">המספרים שלי</div>
+      <div class="kv"><span>נקודות</span><b>${S.score}</b></div>
+      <div class="kv"><span>רצף נוכחי</span><b>${S.streak||0} ימים</b></div>
+      <div class="kv"><span>רצף שיא</span><b>${S.bestStreak||0} ימים</b></div>
+      <div class="kv"><span>ימים פעילים</span><b>${S.daysActive||0}</b></div>
+      <div class="kv"><span>מדבקות נועם</span><b>${S.noamStickers||0}</b></div>
+      <div class="kv"><span>הפתעות שהורווחו</span><b>${S.noamSurprises||0}</b></div>
+    </div>
+    <div class="reset-line"><button onclick="hardReset()">איפוס כל הנתונים</button></div>`;
+}
+function moreItem(scr,e,t,s){
+  return `<button class="day-opt" style="border-color:var(--line);margin-bottom:8px" onclick="go('${scr}')">
+    <span class="e">${e}</span>
+    <span class="t"><b>${t}</b><span>${s}</span></span>
+  </button>`;
+}
+function hardReset(){
+  if(confirm("למחוק את כל הנתונים ולהתחיל מחדש? אי אפשר לבטל.")){
+    localStorage.removeItem(STORE_KEY); S=defaultState(); save(); renderAll(); go('today');
+    toast("התחלנו מחדש 🤍");
+  }
+}
+
+/* =========================================================
+   NAV + RENDER ALL
+   ========================================================= */
+const MAIN_TABS = ['today','home','money','noam','more'];
+function go(scr){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('scr-'+scr).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  // highlight matching tab, or 'more' for sub-screens
+  const tabScr = MAIN_TABS.includes(scr)?scr:'more';
+  const tab=document.querySelector(`.tab[data-scr="${tabScr}"]`);
+  if(tab) tab.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  renderActive(scr);
+}
+function renderActive(scr){
+  if(scr==='today') renderToday();
+  else if(scr==='money') renderMoney();
+  else if(scr==='home') renderHome();
+  else if(scr==='noam') renderNoam();
+  else if(scr==='more') renderMore();
+  else if(scr==='food') renderFood();
+  else if(scr==='summer') renderSummer();
+  else if(scr==='decision') renderDecision();
+  else if(scr==='emergency') renderEmergency();
+}
+function renderHeader(){
+  document.getElementById('scoreVal').textContent = S.score;
+  const r = rankInfo();
+  document.getElementById('rankName').textContent = r.cur.n;
+  document.getElementById('rankNum').textContent = "דרגה "+(r.idx+1);
+  document.getElementById('rankProg').style.width = r.pct+"%";
+  document.getElementById('rankHint').textContent =
+    r.next ? r.cur.hint+" · עוד "+(r.next.from-S.score)+" נק׳ לדרגה הבאה" : r.cur.hint+" · הדרגה הגבוהה ביותר 🌟";
+}
+function renderAll(){
+  renderHeader();
+  // re-render whichever screen is active
+  const active = document.querySelector('.screen.active');
+  if(active){ const scr = active.id.replace('scr-',''); renderActive(scr); }
+}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+/* ---------- boot ---------- */
+load();
+renderHeader();
+renderToday();
+// keep decision lock timer fresh + handle midnight rollover
+setInterval(()=>{
+  if(S.daily.date!==todayStr()){ rolloverDay(); renderAll(); }
+  const active=document.querySelector('.screen.active');
+  if(active && active.id==='scr-decision') renderDecision();
+}, 30000);
+</script>
+</body>
+</html>
