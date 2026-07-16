@@ -440,7 +440,7 @@ const CHAR_STAGES = [
   {e:"💮", name:"מלבלבת",     line:"יציבות. שכבה על שכבה."},
   {e:"👑", name:"מלכה",       line:"עצמאית. שלי. שלמה."}
 ];
-function charInfo(){ return CHAR_STAGES[rankInfo().idx]; }
+function charInfo(){ return CHAR_STAGES[Math.min(rankInfo().idx, CHAR_STAGES.length-1)]; }
 function celebrateChar(){
   const el=document.getElementById('charEmoji');
   if(!el) return;
@@ -537,25 +537,23 @@ function completeTask(cat){
   S.daily.tasks[cat]=true;
   S.daily.skipped[cat]=false;
   S.score += POINTS[cat];
-  // 3-task bonus
+
+  let msg = "בוצע! +"+POINTS[cat]+" נקודות";
   if(S.daily.tasks.home && S.daily.tasks.money && S.daily.tasks.kids && !S.daily.bonusGiven){
     S.daily.bonusGiven=true;
     S.score += 20;
-    save(); renderAll(); celebrateChar();
-    if(rankInfo().idx>prevRank){ levelUp(); return; }
-    toast("🎉 כל 3 המשימות! בונוס 20 נקודות");
-    return;
+    msg = "🎉 כל 3 המשימות! בונוס 20 נקודות";
+  } else if(S.daily.mode==='emergency'){
+    msg = "💪 ביום חירום זו כבר הצלחה. +"+POINTS[cat];
   }
-  // emergency: one task = success
-  if(S.daily.mode==='emergency'){
-    save(); renderAll(); celebrateChar();
-    if(rankInfo().idx>prevRank){ levelUp(); return; }
-    toast("💪 ביום חירום זו כבר הצלחה. +"+POINTS[cat]);
-    return;
+
+  save(); renderAll();
+  if(rankInfo().idx>prevRank){
+    levelUp();
+  } else {
+    celebrateChar();
+    toast(msg);
   }
-  save(); renderAll(); celebrateChar();
-  if(rankInfo().idx>prevRank){ levelUp(); return; }
-  toast("בוצע! +"+POINTS[cat]+" נקודות");
 }
 function levelUp(){
   const c=charInfo(), r=rankInfo();
