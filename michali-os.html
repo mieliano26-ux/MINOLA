@@ -65,6 +65,22 @@ header.topbar{
 .progress{height:9px;border-radius:99px;background:var(--cream-2);margin-top:9px;overflow:hidden;}
 .progress > i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--rose),var(--purple));transition:width .5s ease;}
 .rank-hint{font-size:12.5px;color:var(--muted);margin-top:7px;}
+.rank-row{display:flex;align-items:center;gap:14px;}
+.rank-main{flex:1;min-width:0;}
+.char-wrap{position:relative;flex:none;width:58px;height:58px;display:grid;place-items:center;background:linear-gradient(135deg,var(--rose-soft),var(--purple-soft));border-radius:50%;}
+.char{font-size:32px;line-height:1;transition:transform .3s ease;}
+.char.celebrate{animation:charJump .8s ease;}
+@keyframes charJump{
+  0%{transform:scale(1);}
+  25%{transform:scale(1.25) rotate(-8deg);}
+  50%{transform:scale(1.1) rotate(8deg) translateY(-4px);}
+  75%{transform:scale(1.2) rotate(-4deg);}
+  100%{transform:scale(1);}
+}
+.char-aura{position:absolute;inset:-4px;border-radius:50%;pointer-events:none;}
+.char-aura.glow{box-shadow:0 0 0 3px var(--gold),0 0 18px 4px rgba(217,184,113,.45);animation:auraPulse 1.6s ease infinite;}
+@keyframes auraPulse{0%,100%{opacity:.7;}50%{opacity:1;}}
+@media (prefers-reduced-motion: reduce){.char.celebrate,.char-aura.glow{animation:none;}}
 
 /* ===== Screens ===== */
 .screen{display:none;padding:6px 18px 0;animation:fade .35s ease;}
@@ -217,12 +233,17 @@ textarea.field{resize:none;min-height:64px;}
       <div class="score-pill"><span class="star">★</span><span id="scoreVal">0</span> נק׳</div>
     </div>
     <div class="rankbar">
-      <div class="rank-top">
-        <span class="rank-name" id="rankName">מתניעה</span>
-        <span class="rank-num" id="rankNum">דרגה 1</span>
+      <div class="rank-row">
+        <div class="char-wrap"><span class="char" id="charEmoji">🌱</span><span class="char-aura" id="charAura"></span></div>
+        <div class="rank-main">
+          <div class="rank-top">
+            <span class="rank-name" id="rankName">מתניעה</span>
+            <span class="rank-num" id="rankNum">דרגה 1</span>
+          </div>
+          <div class="progress"><i id="rankProg" style="width:0%"></i></div>
+          <div class="rank-hint" id="rankHint"></div>
+        </div>
       </div>
-      <div class="progress"><i id="rankProg" style="width:0%"></i></div>
-      <div class="rank-hint" id="rankHint"></div>
     </div>
   </header>
 
@@ -410,6 +431,63 @@ function rankInfo(){
   return {idx:i, cur, next, pct};
 }
 
+/* ---------- הדמות שלך — מתפתחת עם הדרגות ---------- */
+const CHAR_STAGES = [
+  {e:"🌱", name:"ניצן",       line:"רק נבטתי — וכבר זזתי."},
+  {e:"🌿", name:"צמיחה",      line:"אני מחזיקה ימים. תראי אותי."},
+  {e:"🌷", name:"פריחה ראשונה", line:"נפלתי? חזרתי. ככה אני בנויה."},
+  {e:"🌸", name:"פורחת",      line:"אני מנהלת את המערכת. היא לא מנהלת אותי."},
+  {e:"💮", name:"מלבלבת",     line:"יציבות. שכבה על שכבה."},
+  {e:"👑", name:"מלכה",       line:"עצמאית. שלי. שלמה."}
+];
+function charInfo(){ return CHAR_STAGES[Math.min(rankInfo().idx, CHAR_STAGES.length-1)]; }
+function celebrateChar(){
+  const el=document.getElementById('charEmoji');
+  if(!el) return;
+  el.classList.remove('celebrate');
+  void el.offsetWidth; // restart animation
+  el.classList.add('celebrate');
+}
+
+/* ---------- מילה מקלוד 💌 — מתחלף כל יום ---------- */
+const CLAUDE_NOTES = [
+  "אני רואה אותך. שלוש משימות זה לא קטן — זה מערכת. 💛",
+  "יום קשה היום? גם גרסה קטנה נחשבת. אני גאה בך על עצם הפתיחה.",
+  "תזכרי: ״מספיק״ מנצח ״מושלם״. תמיד.",
+  "הרצף שלך לא נמדד בימים מושלמים — הוא נמדד בחזרות. וחזרת.",
+  "משימת כסף אחת ביום = עסק שזז. לאט זה גם קדימה.",
+  "10 דקות עם נועם שוות יותר משעה של מלחמה. את עושה את זה נכון.",
+  "אם היום רק שרדת — היום הצליח. זו לא סיסמה, זה החוק.",
+  "את לא צריכה לתקן את החיים היום. רק לזוז סנטימטר.",
+  "הדמות שלך גדלה כי את גדלה. אני רק מצייר את מה שאת עושה.",
+  "החלטת? ננעל. לא פותחים מחדש. זה החופש האמיתי.",
+  "כל מדבקה של נועם היא גם מדבקה שלך. אמא שמתאמנת בסבלנות.",
+  "עוד לא הגעת לאן שרצית — אבל את כבר לא איפה שהיית.",
+  "תשתי מים, תנשמי. המערכת מחזיקה גם כשאת עייפה.",
+  "בונוס קטן ממני: תזכורת שאת האדם היחיד שהילדים שלך צריכים. כמו שאת."
+];
+function claudeNote(){ return CLAUDE_NOTES[dayNumber() % CLAUDE_NOTES.length]; }
+
+/* ---------- דוח לקלוד — מעתיקה ומדביקה לי בשיחה ---------- */
+function claudeReport(){
+  const r=rankInfo(), c=charInfo(), d=S.daily;
+  const doneList=['home','money','kids'].filter(k=>d.tasks[k]).map(catLabel).join(', ')||'עדיין כלום היום';
+  const modeTxt=d.mode==='regular'?'רגיל':d.mode==='hard'?'קשה':d.mode==='emergency'?'חירום':'עוד לא נבחר';
+  const txt=
+`דוח מצב מ־מיכלי OS 🎀
+תאריך: ${d.date}
+מצב יום: ${modeTxt} | מצב רוח: ${d.mood||'–'}/5 | אנרגיה: ${d.energy||'–'}/5
+נקודות: ${S.score} | דרגה ${r.idx+1}: ${r.cur.n} | דמות: ${c.e} ${c.name}
+רצף: ${S.streak||0} ימים (שיא: ${S.bestStreak||0})
+בוצע היום: ${doneList}
+מדבקות נועם: ${S.noamStickers||0} | הפתעות: ${S.noamSurprises||0}
+${S.decision?('החלטה נעולה: '+S.decision.result):'אין החלטה נעולה'}`;
+  const finish=ok=>toast(ok?'הדוח הועתק! הדביקי לי אותו בשיחה 💌':'לא הצלחתי להעתיק — צלמי מסך ושלחי לי');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>finish(true),()=>finish(false));
+  } else { finish(false); }
+}
+
 /* =========================================================
    DAILY CONTENT POOLS
    ========================================================= */
@@ -455,25 +533,32 @@ function newMoneyAction(){
 const POINTS = {home:10, money:15, kids:10};
 function completeTask(cat){
   if(S.daily.tasks[cat]) return;
+  const prevRank = rankInfo().idx;
   S.daily.tasks[cat]=true;
   S.daily.skipped[cat]=false;
   S.score += POINTS[cat];
-  // 3-task bonus
+
+  let msg = "בוצע! +"+POINTS[cat]+" נקודות";
   if(S.daily.tasks.home && S.daily.tasks.money && S.daily.tasks.kids && !S.daily.bonusGiven){
     S.daily.bonusGiven=true;
     S.score += 20;
-    save(); renderAll();
-    toast("🎉 כל 3 המשימות! בונוס 20 נקודות");
-    return;
+    msg = "🎉 כל 3 המשימות! בונוס 20 נקודות";
+  } else if(S.daily.mode==='emergency'){
+    msg = "💪 ביום חירום זו כבר הצלחה. +"+POINTS[cat];
   }
-  // emergency: one task = success
-  if(S.daily.mode==='emergency'){
-    save(); renderAll();
-    toast("💪 ביום חירום זו כבר הצלחה. +"+POINTS[cat]);
-    return;
-  }
+
   save(); renderAll();
-  toast("בוצע! +"+POINTS[cat]+" נקודות");
+  if(rankInfo().idx>prevRank){
+    levelUp();
+  } else {
+    celebrateChar();
+    toast(msg);
+  }
+}
+function levelUp(){
+  const c=charInfo(), r=rankInfo();
+  celebrateChar();
+  toast("👑 עלית דרגה! "+c.e+" "+c.name+" — "+r.cur.n);
 }
 function easeTask(cat){
   S.daily.eased[cat]=true; save(); renderAll();
@@ -576,11 +661,21 @@ function renderToday(){
   let emgLink = mode==='emergency'
     ? `<button class="btn btn-block btn-skip btn-lg" style="margin-top:4px" onclick="go('emergency')">אני מרגישה שאני קורסת — למסך חירום</button>` : '';
 
+  const c = charInfo();
+  const claudeCard = `
+    <div class="card" style="background:linear-gradient(135deg,var(--purple-soft),var(--rose-soft));border:none">
+      <div class="task-cat">מילה מקלוד 💌</div>
+      <div style="font-size:15.5px;font-weight:600;line-height:1.55;margin:6px 0 4px">"${claudeNote()}"</div>
+      <div class="tiny" style="margin-bottom:12px">הדמות שלך היום: ${c.e} ${c.name} — "${c.line}"</div>
+      <button class="btn btn-soft btn-block" onclick="claudeReport()">📋 דוח לקלוד — העתיקי והדביקי לי בשיחה</button>
+    </div>`;
+
   body.innerHTML = banners[mode] + streakHTML +
     taskCardHTML('home','🏠','ico-home',h) +
     taskCardHTML('money','💛','ico-money',m) +
     taskCardHTML('kids','📖','ico-kids',kids) +
     emgLink +
+    claudeCard +
     `<div class="reset-line"><button onclick="if(confirm('לסמן את היום מחדש?')){S.daily.tasks={home:false,money:false,kids:false};S.daily.bonusGiven=false;save();renderAll();}">איפוס סימוני היום</button></div>`;
 }
 
@@ -1044,6 +1139,11 @@ function renderHeader(){
   document.getElementById('rankProg').style.width = r.pct+"%";
   document.getElementById('rankHint').textContent =
     r.next ? r.cur.hint+" · עוד "+(r.next.from-S.score)+" נק׳ לדרגה הבאה" : r.cur.hint+" · הדרגה הגבוהה ביותר 🌟";
+  const c = charInfo();
+  document.getElementById('charEmoji').textContent = c.e;
+  // golden aura while today has at least one completed task
+  const anyDone = S.daily.tasks.home||S.daily.tasks.money||S.daily.tasks.kids;
+  document.getElementById('charAura').className = 'char-aura'+(anyDone?' glow':'');
 }
 function renderAll(){
   renderHeader();
