@@ -77,8 +77,8 @@ A phone-shell-styled quiz that loads `products.js` and reads `window.MINOLA_ITEM
 
 ### Ordering convention
 
-Every purchase path ends at `https://wa.me/972502733773?text=...` with a URL-encoded Hebrew order template. The number lives in `products.js` as `MINOLA_PHONE`, but is also hardcoded in many `index.html` links — a phone-number change must touch both.
+Every purchase path ends at `https://wa.me/972502733773?text=...` with a URL-encoded Hebrew order template. The number lives in `products.js` as `MINOLA_PHONE`, but is also hardcoded in many `index.html` links and as a fallback in `finder.html` — a phone-number change must touch all of them.
 
 ## מיכלי OS (`michali-os.html`)
 
-A single self-contained file: tab-based screens (`#scr-today`, `#scr-money`, `#scr-home`, `#scr-noam`, `#scr-more`, plus sub-screens for food/summer/decision/emergency), a points-and-ranks system, and all state persisted to `localStorage` under `STORE_KEY`. Content data lives in top-level `const` arrays (`CRITERIA`, `FOOD`, `HOME_TASKS`, `MAIN_TABS`, etc.).
+A single self-contained file: tab-based screens (`#scr-today`, `#scr-money`, `#scr-home`, `#scr-noam`, `#scr-more`, plus sub-screens for food/summer/decision/emergency), a points-and-ranks system, and all state persisted to `localStorage` under `STORE_KEY`. Content data lives in top-level `const` structures (`CRITERIA`, `FOOD`, `HOME_TASKS`, `MAIN_TABS`, etc.).
