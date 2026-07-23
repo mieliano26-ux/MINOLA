@@ -207,14 +207,45 @@ textarea.field{resize:none;min-height:64px;}
 .routine-item .rt span{font-size:13px;color:var(--muted);}
 .reset-line{text-align:center;margin:22px 0 8px;}
 .reset-line button{background:none;color:var(--muted);font-size:13px;text-decoration:underline;}
+
+/* ===== User picker ===== */
+.user-btn{
+  display:flex;align-items:center;gap:6px;background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:7px 12px;
+  font-weight:700;font-size:14px;color:var(--ink);box-shadow:var(--shadow-sm);
+}
+.user-overlay{
+  position:fixed;inset:0;z-index:300;background:var(--cream);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center;
+}
+.user-overlay.show{display:flex;}
+.user-overlay h1{font-size:26px;font-weight:700;margin:0 0 6px;}
+.user-overlay p{color:var(--muted);font-size:15px;margin:0 0 26px;}
+.user-list{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px;}
+.user-card{
+  display:flex;align-items:center;gap:15px;background:var(--card);
+  border:2px solid var(--line);border-radius:var(--radius);padding:18px;
+  width:100%;text-align:right;box-shadow:var(--shadow-sm);transition:.18s;
+}
+.user-card:active{transform:scale(.97);}
+.user-card .avatar{
+  width:52px;height:52px;border-radius:50%;display:grid;place-items:center;
+  font-size:26px;flex:none;
+}
+.user-card .un b{display:block;font-size:19px;font-weight:700;}
+.user-card .un span{font-size:13.5px;color:var(--muted);}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="topbar">
     <div class="topbar-row">
-      <div class="brand"><span class="dot"></span>מיכלי OS</div>
-      <div class="score-pill"><span class="star">★</span><span id="scoreVal">0</span> נק׳</div>
+      <div class="brand"><span class="dot" id="brandDot"></span><span id="brandName">מיכלי OS</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="user-btn" id="userBtn" onclick="openUserPicker()">👤</button>
+        <div class="score-pill"><span class="star">★</span><span id="scoreVal">0</span> נק׳</div>
+      </div>
     </div>
     <div class="rankbar">
       <div class="rank-top">
@@ -297,13 +328,61 @@ textarea.field{resize:none;min-height:64px;}
 
 <div class="toast" id="toast"></div>
 
+<div class="user-overlay" id="userOverlay">
+  <h1>מי כאן? 👋</h1>
+  <p>לכל משתמש יש נקודות, רצף ומשימות משלו.</p>
+  <div class="user-list" id="userList"></div>
+</div>
+
 <script>
 /* =========================================================
    מיכלי OS — מערכת חיים משחקית. הכל מקומי (localStorage).
    ========================================================= */
 "use strict";
 
-const STORE_KEY = "michali_os_v1";
+/* ---------- users ---------- */
+/* לכל משתמש מפתח localStorage משלו — הנקודות והמשימות נפרדות לגמרי.
+   המפתח של מיכלי נשאר "michali_os_v1" כדי לא לאבד נתונים קיימים. */
+const USERS = {
+  michali:{name:"מיכלי", emoji:"🌸", bg:"var(--rose-soft)",   key:"michali_os_v1"},
+  soni:   {name:"סוני",  emoji:"⭐", bg:"var(--purple-soft)", key:"soni_os_v1"}
+};
+const CURRENT_USER_KEY = "os_current_user";
+
+let currentUser = null;
+function storeKey(){ return USERS[currentUser].key; }
+
+function openUserPicker(){
+  const list = document.getElementById('userList');
+  list.innerHTML = Object.keys(USERS).map(id=>{
+    const u = USERS[id];
+    return `<button class="user-card" onclick="selectUser('${id}')">
+      <span class="avatar" style="background:${u.bg}">${u.emoji}</span>
+      <span class="un"><b>${u.name}</b><span>${id===currentUser?'המשתמש הנוכחי':'כניסה למערכת של '+u.name}</span></span>
+    </button>`;
+  }).join('');
+  document.getElementById('userOverlay').classList.add('show');
+}
+function selectUser(id){
+  const switched = currentUser && currentUser !== id;
+  currentUser = id;
+  localStorage.setItem(CURRENT_USER_KEY, id);
+  document.getElementById('userOverlay').classList.remove('show');
+  // איפוס מצב זמני שלא שייך למשתמש (טיימר, טופס החלטה)
+  resetTimer();
+  dform = {options:["","",""], criterion:null, text:""};
+  load();
+  applyUserBranding();
+  renderAll();
+  go('today');
+  if(switched) toast("היי "+USERS[id].name+"! 👋");
+}
+function applyUserBranding(){
+  const u = USERS[currentUser];
+  document.getElementById('brandName').textContent = u.name+" OS";
+  document.getElementById('userBtn').textContent = "👤 "+u.name;
+  document.title = u.name+" OS";
+}
 
 /* ---------- date helpers ---------- */
 function todayStr(){
@@ -353,7 +432,7 @@ function defaultState(){
 let S;
 function load(){
   try{
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = localStorage.getItem(storeKey());
     S = raw ? JSON.parse(raw) : defaultState();
   }catch(e){ S = defaultState(); }
   // new day rollover
@@ -365,7 +444,7 @@ function load(){
     S.decision = null;
   }
 }
-function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+function save(){ localStorage.setItem(storeKey(), JSON.stringify(S)); }
 
 function rolloverDay(){
   const prev = S.daily;
@@ -985,13 +1064,16 @@ function renderMore(){
       ${moreItem('emergency','🆘','חירום','כשקורסים — רק לא ליפול')}
     </div>
     <div class="card">
-      <div class="section-title" style="margin-top:0">המספרים שלי</div>
+      <div class="section-title" style="margin-top:0">המספרים של ${USERS[currentUser].name}</div>
       <div class="kv"><span>נקודות</span><b>${S.score}</b></div>
       <div class="kv"><span>רצף נוכחי</span><b>${S.streak||0} ימים</b></div>
       <div class="kv"><span>רצף שיא</span><b>${S.bestStreak||0} ימים</b></div>
       <div class="kv"><span>ימים פעילים</span><b>${S.daysActive||0}</b></div>
       <div class="kv"><span>מדבקות נועם</span><b>${S.noamStickers||0}</b></div>
       <div class="kv"><span>הפתעות שהורווחו</span><b>${S.noamSurprises||0}</b></div>
+    </div>
+    <div class="card">
+      <button class="btn btn-soft btn-block" onclick="openUserPicker()">👤 החלפת משתמש (מחובר: ${USERS[currentUser].name})</button>
     </div>
     <div class="reset-line"><button onclick="hardReset()">איפוס כל הנתונים</button></div>`;
 }
@@ -1003,7 +1085,7 @@ function moreItem(scr,e,t,s){
 }
 function hardReset(){
   if(confirm("למחוק את כל הנתונים ולהתחיל מחדש? אי אפשר לבטל.")){
-    localStorage.removeItem(STORE_KEY); S=defaultState(); save();
+    localStorage.removeItem(storeKey()); S=defaultState(); save();
     resetTimer();
     renderAll(); go('today');
     toast("התחלנו מחדש 🤍");
@@ -1062,11 +1144,15 @@ function toast(msg){
 }
 
 /* ---------- boot ---------- */
-load();
-renderHeader();
-renderToday();
+const savedUser = localStorage.getItem(CURRENT_USER_KEY);
+if(savedUser && USERS[savedUser]){
+  selectUser(savedUser);
+} else {
+  openUserPicker();
+}
 // keep decision lock timer fresh + handle midnight rollover
 setInterval(()=>{
+  if(!S) return;
   if(S.daily.date!==todayStr()){ rolloverDay(); renderAll(); }
   const active=document.querySelector('.screen.active');
   if(active && active.id==='scr-decision' && S.decision && S.decision.lockedUntil > Date.now()) renderDecision();
