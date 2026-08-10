@@ -57,7 +57,7 @@ Each product uses short field names, normalized at load time into aliases the fi
 
 Normalization also stamps `id` (`p0`, `p1`, …), `showClient: true`, and `brandFeatured: false` defaults, then exposes globals: `window.MINOLA_PHONE` (`"972502733773"`), `window.MINOLA_PRODUCTS`, and `window.MINOLA_ITEMS` (same array; the name `finder.html` reads).
 
-**Gotcha:** roughly half the products reference `images/NN.jpg`, but there is no `images/` directory in this repo — those thumbnails 404 unless the images are deployed alongside the pages. The rest embed base64 data URIs.
+**Gotcha:** 47 products reference `images/NN.jpg`, but there is no `images/` directory in this repo — those thumbnails 404 unless the images are deployed alongside the pages. Another 53 products embed base64 data URIs, and 5 products currently have no image.
 
 ### index.html — catalog / landing page
 
@@ -65,7 +65,7 @@ Static marketing page plus product sections with hardcoded `wa.me` order links. 
 
 ### finder.html — gift-finder quiz
 
-A mobile-phone-styled (393px shell) multi-screen quiz app: splash → questions → results. Reads `window.MINOLA_ITEMS`, filters by answers, and builds a WhatsApp order link from `window.MINOLA_PHONE`. Screens are `.screen` divs toggled with a `.hidden` class via `showScreen()`.
+A mobile-phone-styled (393px shell) multi-screen quiz app: splash → questions → results. Reads `window.MINOLA_ITEMS` and builds a WhatsApp order link from `window.MINOLA_PHONE`. Product filtering uses the recipient/category and budget answers; the quantity answer is included only in the WhatsApp message and does not affect the results. Screens are `.screen` divs toggled with a `.hidden` class via `showScreen()`.
 
 ### michali-os.html — "מיכלי OS" life-game app
 
@@ -73,7 +73,7 @@ Fully self-contained, mobile-only, no relation to the store or `products.js`. Al
 
 ### main.py — WhatsApp bot
 
-All bot logic in one file. No database — state is the module-level dict `reveal_state`, so it resets on process restart and is not thread-safe under concurrent workers.
+All bot logic is in one file. There is no database: the module-level `reveal_state` is global and shared by every sender, resets on process restart, and is not safe under concurrent workers.
 
 - `GET /webhook` — Meta's verification challenge. Returns `hub.challenge` if `hub.verify_token` matches `VERIFY_TOKEN`, else 403.
 - `POST /webhook` — extracts sender and text from the Meta event payload, runs `get_reveal_logic()`, replies via `send_whatsapp_message()` (POST to `https://graph.facebook.com/v17.0/{PHONE_NUMBER_ID}/messages`). Errors are swallowed by a bare `except: pass`.
