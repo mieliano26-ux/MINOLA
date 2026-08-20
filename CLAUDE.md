@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Language / שפה
+
+**Always respond to the user in Hebrew (עברית), even when they write in English or mix languages.** All chat replies to the user must be in Hebrew. (Code and commit messages should remain in English, while conversational replies and user-facing game content are in Hebrew.)
+
 ## What This Is
 
 MINOLA is a Hebrew-language (RTL) personalized-gifts business. The repo holds two unrelated-but-cohabiting things, plus a third standalone app:
