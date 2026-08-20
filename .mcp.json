@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "kolzchut": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@skills-il/kolzchut-mcp"
+      ]
+    }
+  }
+}
