@@ -76,7 +76,7 @@ The eight tags in use, by frequency: `לבית` (51), `כוסות ובקבוקי
 
 **Gotcha — missing images.** 47 products reference `images/NN.jpg`, but there is no `images/` directory in this repo — those thumbnails 404 unless the images are deployed alongside the pages. 53 products embed base64 data URIs, and 5 have `"img": ""`. Every surface degrades gracefully: the catalog grid swaps a failed or empty image for the striped "תמונה בקרוב" placeholder, and the finder and widget show a placeholder or nothing.
 
-**Gotcha — price strings are not uniform.** 39 distinct values across three shapes: `"₪89"` (most), bare digits `"119"`, and non-numeric `"מחיר בהתאמה"` / `"בהתאמה"` / `"עד ₪100"` / `"עד ₪60"`. Both budget filters parse with the same rule — strip every non-digit and `parseInt` — so `"עד ₪100"` reads as 100, and anything with no digits parses to `null` and is treated as *matching every budget*. Keep new prices in the `"₪NN"` shape.
+**Price strings.** 96 products use the canonical `"₪89"` shape; 9 are non-numeric free text (`"מחיר בהתאמה"` / `"בהתאמה"` / `"עד ₪100"` / `"עד ₪60"`). The 39 bare-digit values (`"119"`) that used to render alongside them were normalized to `"₪NN"`. Both budget filters parse with the same rule — strip every non-digit and `parseInt` — so `"עד ₪100"` reads as 100, and anything with no digits parses to `null` and is treated as *matching every budget*. Keep new prices in the `"₪NN"` shape.
 
 ### index.html — catalog / landing page
 
@@ -91,6 +91,13 @@ Three scripts run in order, and that order matters:
 The filter captures `document.querySelectorAll('.card')` once at parse time, so it **must stay after the renderer**. Moving the `products.js` include back to the bottom of the page (where it used to live) silently yields an empty catalog.
 
 At the bottom is the embedded chat-widget "gift assistant" (`#mbot`): a scripted quick-reply flow (recipient → budget) that filters `window.MINOLA_PRODUCTS` by the `aud` array and parsed price, shows up to 6 matches as `wa.me` links, and falls back to a human-handoff WhatsApp link when nothing matches.
+
+**Two CSS rules that look redundant and are not — don't delete either:**
+
+- `#mbot[hidden]{display:none}`. The panel is opened and closed purely with the `hidden` attribute, but `#mbot`'s own rule sets `display:flex`, which outranks the user-agent `[hidden]{display:none}`. Without the explicit rule the panel is open on every page load — covering 94% of a 390px viewport — and the × button appears to do nothing.
+- `min-width:0` on `.search` and its `input`. A flex child will not shrink below its content's intrinsic width without it, so the header pushes the document wider than the viewport (468px inside a 390px screen) and the whole page scrolls sideways on a phone.
+
+The hero collage (`#hero-collage`) is also rendered by the grid script, from the first four products whose `img` is an embedded data URI — the four hardcoded `images/…` thumbnails it used to hold were all 404s.
 
 ### finder.html — gift-finder quiz
 

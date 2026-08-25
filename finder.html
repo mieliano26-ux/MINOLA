@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MINOLA — מוצא מתנות</title>
+<title>MINOLA — מוצא מתנות | 3 שאלות ומוצאים מתנה מותאמת</title>
+<meta name="description" content="לא יודעים מה לקנות? שלוש שאלות קצרות — למי המתנה, כמה יחידות ומה התקציב — ומינולה מציעה מתנות בעיצוב אישי שמתאימות בדיוק, עם הזמנה בוואטסאפ.">
+<meta name="theme-color" content="#B8755C">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MINOLA">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="MINOLA — מוצא מתנות">
+<meta property="og:description" content="שלוש שאלות קצרות ומוצאים מתנה בעיצוב אישי שמתאימה בדיוק.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23EC4899'/%3E%3Cpath d='M16 25S6 19 6 13.2A4.7 4.7 0 0 1 16 10a4.7 4.7 0 0 1 10 3.2C26 19 16 25 16 25z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -70,7 +80,7 @@ body{display:flex;align-items:flex-start;justify-content:center;}
 }
 .splash-card-title{
   font-family:var(--serif);font-weight:500;font-size:22px;
-  color:var(--ink);margin-bottom:8px;line-height:1.25;
+  color:var(--ink);margin:0 0 8px;line-height:1.25;
 }
 .splash-card-body{font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.7;font-weight:400;}
 .splash-tags{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap;}
@@ -199,6 +209,9 @@ body{display:flex;align-items:flex-start;justify-content:center;}
   white-space:nowrap;letter-spacing:.05em;
 }
 .prod-cat{font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4;}
+.prod-price{color:var(--accent);font-weight:600;}
+.prod-thumb-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;
+  background:repeating-linear-gradient(45deg,#F3E7DF,#F3E7DF 12px,#EADAD0 12px,#EADAD0 24px);}
 .prod-hint{font-family:var(--sans);font-size:11px;color:rgba(184,117,92,.65);margin-top:5px;}
 .prod-card.picked .prod-hint{color:var(--accent);font-weight:600;}
 
@@ -279,7 +292,7 @@ body{display:flex;align-items:flex-start;justify-content:center;}
         <div class="splash-tagline">מתנות ממותגות שמדברות בשבילך</div>
 
         <div class="splash-card">
-          <div class="splash-card-title">מצאי את המתנה המושלמת</div>
+          <h1 class="splash-card-title">מצאי את המתנה המושלמת</h1>
           <div class="splash-card-body">3 שאלות קצרות — ונציע לך את המתנה הממותגת המושלמת לכל אירוע</div>
           <div class="splash-tags">
             <span class="splash-tag">מהיר</span>
@@ -561,16 +574,19 @@ function renderResults() {
     const title = esc(item.title || item.productCategory || 'מתנה');
     const cat   = esc(item.productCategory || '');
     const thumb = esc(item.thumbnailUrl || '');
+    const price = esc(item.price || '');
     card.innerHTML =
       '<div class="prod-thumb">' +
-        (thumb ? '<img src="' + thumb + '" alt="' + title + '" loading="lazy">' : '') +
+        (thumb ? '<img src="' + thumb + '" alt="' + title + '" loading="lazy"' +
+                 ' onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),' +
+                 '{className:\'prod-thumb-ph\',textContent:\'\\u{1F49D}\'}))">' : '') +
       '</div>' +
       '<div class="prod-info">' +
         '<div class="prod-top">' +
           '<div class="prod-name">' + title + '</div>' +
           (item.brandFeatured ? '<span class="prod-badge">מומלץ</span>' : '') +
         '</div>' +
-        '<div class="prod-cat">' + cat + '</div>' +
+        '<div class="prod-cat">' + cat + (price ? ' · <b class="prod-price">' + price + '</b>' : '') + '</div>' +
         '<div class="prod-hint">לחצי לסימון</div>' +
       '</div>';
     card.addEventListener('click', () => togglePick(item, card));
