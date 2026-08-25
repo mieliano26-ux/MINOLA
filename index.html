@@ -1,9 +1,39 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MINOLA — מתנות בעיצוב אישי</title>
+<title>MINOLA — מתנות בעיצוב אישי | ספלים, מארזים ומתנות מותאמות</title>
+<meta name="description" content="מתנות בעיצוב אישי לכל אירוע — ספלים, מארזים, מתנות לילדים, למורות ולזוגות, מודפסות עם השם, התמונה והמשפט שלכם. הזמנה בוואטסאפ, אספקה 3–5 ימי עסקים.">
+<meta name="theme-color" content="#EC4899">
+<link rel="canonical" href="https://mieliano26-ux.github.io/minola/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MINOLA">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="MINOLA — מתנות בעיצוב אישי">
+<meta property="og:description" content="ספלים, מארזים ומתנות לכל אירוע — מעוצבים אישית עם השם, התמונה והמשפט שלכם. הזמנה מהירה בוואטסאפ.">
+<meta property="og:url" content="https://mieliano26-ux.github.io/minola/">
+<meta property="og:image" content="https://mieliano26-ux.github.io/minola/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MINOLA — מתנות בעיצוב אישי">
+<meta name="twitter:description" content="ספלים, מארזים ומתנות לכל אירוע — מעוצבים אישית עם השם, התמונה והמשפט שלכם.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23EC4899'/%3E%3Cpath d='M16 25S6 19 6 13.2A4.7 4.7 0 0 1 16 10a4.7 4.7 0 0 1 10 3.2C26 19 16 25 16 25z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@500;700;900&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "Store",
+ "name": "MINOLA",
+ "description": "מתנות בעיצוב אישי — ספלים, מארזים ומתנות מותאמות לכל אירוע.",
+ "url": "https://mieliano26-ux.github.io/minola/",
+ "image": "https://mieliano26-ux.github.io/minola/logo.png",
+ "telephone": "+972502733773",
+ "areaServed": "IL",
+ "priceRange": "₪12–₪159",
+ "currenciesAccepted": "ILS",
+ "inLanguage": "he"
+}
+</script>
 <style>
 :root{
  --rose:#EC4899; --rose-2:#F472B6; --rose-soft:#FBCFE8; --gold:#FFD97A; --gold-deep:#B26B00; --rosegold:#F9A8C4;
@@ -23,8 +53,9 @@ header.top{position:sticky;top:0;z-index:40;background:rgba(251,248,244,.9);back
 .brandlogo{display:flex;align-items:center} .brandlogo img{height:50px;display:block}
 .logo{font-family:'Frank Ruhl Libre',serif;font-weight:900;font-size:1.7rem;letter-spacing:5px;color:var(--ink)}
 .logo i{color:var(--rose);font-style:normal}
-.search{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:40px;padding:11px 20px;box-shadow:var(--sh);max-width:560px}
-.search input{border:0;outline:0;flex:1;font-size:1rem;font-family:inherit;background:transparent;color:var(--ink)}
+/* min-width:0 — בלעדיו שדה החיפוש לא מתכווץ מתחת לרוחב התוכן והדף גולש לצדדים בנייד */
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:40px;padding:11px 20px;box-shadow:var(--sh);max-width:560px}
+.search input{border:0;outline:0;flex:1;min-width:0;font-size:1rem;font-family:inherit;background:transparent;color:var(--ink)}
 .wa-top{background:linear-gradient(135deg,#EC4899,#7C3AED);color:#fff;border-radius:40px;padding:10px 20px;text-decoration:none;font-weight:600;white-space:nowrap}
 
 /* hero banner */
@@ -113,7 +144,7 @@ footer a{color:var(--rose-soft);text-decoration:none}
    <a class="btn ghost" href="https://wa.me/972502733773" target="_blank" rel="noopener">נדבר בוואטסאפ 💬</a>
    <a class="btn primary" href="finder.html">מצא לי מתנה 🎁</a>
   </div>
-  <div class="hero-collage"><img src="images/9201.jpg" alt=""><img src="images/71.jpg" alt=""><img src="images/103.jpg" alt=""><img src="images/89.jpg" alt=""></div>
+  <div class="hero-collage" id="hero-collage"></div>
  </div>
 </section>
 
@@ -161,6 +192,16 @@ footer a{color:var(--rose-soft);text-decoration:none}
  Array.prototype.forEach.call(grid.querySelectorAll('.media img'),function(img){
   img.addEventListener('error',function(){img.parentNode.innerHTML=PH;});
  });
+
+ /* קולאז' ההירו נבנה גם הוא מהקטלוג, ורק ממוצרים שהתמונה שלהם מוטמעת בקוד —
+    ארבע התמונות שהיו כאן קשיחות הפנו ל-images/ שלא קיימת, וכולן החזירו 404. */
+ var collage=document.getElementById('hero-collage');
+ if(collage){
+  collage.innerHTML=D.filter(function(p){return String(p.img||'').slice(0,5)==='data:';})
+   .slice(0,4).map(function(p){
+    return '<img src="'+esc(p.img)+'" alt="'+esc(p.n)+'" decoding="async">';
+   }).join('');
+ }
 })();
 </script>
 
@@ -187,6 +228,8 @@ q.addEventListener('input',apply);
 #mbot-launch{position:fixed;bottom:22px;left:22px;z-index:60;border:0;border-radius:40px;cursor:pointer;font-size:1rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#EC4899,#7C3AED);box-shadow:0 12px 30px rgba(124,58,237,.5);padding:14px 22px;font-family:'Assistant',sans-serif}
 #mbot-launch:hover{transform:scale(1.05)}
 #mbot{position:fixed;bottom:22px;left:22px;z-index:61;width:380px;max-width:94vw;height:600px;max-height:84vh;background:#fff;border:1px solid #EEE7F5;border-radius:22px;box-shadow:0 26px 70px rgba(46,42,38,.32);display:flex;flex-direction:column;overflow:hidden;font-family:'Assistant',sans-serif}
+/* חובה: בלי זה display:flex גובר על תכונת hidden, והחלונית נפתחת על כל טעינה ומכסה את הדף */
+#mbot[hidden]{display:none}
 #mbot-bar{background:linear-gradient(135deg,#EC4899,#7C3AED);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;font-family:'Frank Ruhl Libre',serif;font-weight:700}
 #mbot-bar button{background:transparent;border:0;color:#fff;font-size:1.5rem;cursor:pointer;line-height:1}
 #mbot-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#FAF8FF}
@@ -216,7 +259,7 @@ q.addEventListener('input',apply);
  function go(b){var lbl={low:'עד ₪50',mid:'₪50–100',high:'₪100–150',premium:'מעל ₪150',any:'לא משנה'}[b];say(lbl,'me');
   var r=DATA.filter(function(p){var c=(rec==='all')||((p.aud||[]).indexOf(rec)>=0);return c&&inB(p,b);}).slice(0,6);
   if(!r.length){say('לא מצאתי בדיוק בזה 🙈 בואי נדבר ונתאים —');human();return;}
-  var h='הנה רעיונות מתאימים 💜';r.forEach(function(p){h+='<a class="mprod" href="'+p.wa+'" target="_blank">'+(p.img?'<img src="'+p.img+'" alt="">':'<span class="ph">💝</span>')+'<span>'+p.n+'<b>'+p.p+'</b></span></a>';});
+  var h='הנה רעיונות מתאימים 💜';r.forEach(function(p){h+='<a class="mprod" href="'+p.wa+'" target="_blank" rel="noopener">'+(p.img?'<img src="'+p.img+'" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'ph\',textContent:\'💝\'}))">':'<span class="ph">💝</span>')+'<span>'+p.n+'<b>'+p.p+'</b></span></a>';});
   say(h);qr([{t:'עוד 🔄',f:start},{t:'לדבר עם מיכלי',f:human}]);}
  function human(){var w='https://wa.me/'+P+'?text='+encodeURIComponent('היי מיכלי, הגעתי מהאתר ואשמח לעזרה בבחירת מתנה 💜');say('מעבירה אותך לוואטסאפ של מיכלי 💬<br><a href="'+w+'" target="_blank" style="color:#DB2777;font-weight:600">פתחי שיחה →</a>');qr([{t:'התחלה מחדש',f:start}]);}
  L.onclick=function(){B.hidden=false;L.style.display='none';};
