@@ -16,14 +16,15 @@ Whole repo, at a glance:
 
 | File | Size | What |
 |---|---|---|
-| `index.html` | ~19 KB | Catalog/landing page — grid rendered from `products.js` — + embedded chat widget |
+| `index.html` | ~21 KB | Catalog/landing page — grid rendered from `products.js` — + embedded chat widget |
 | `products.js` | ~1.6 MB | 105-product `DATA` array + normalization (base64 images inline) |
-| `finder.html` | ~28 KB | Gift-finder quiz |
+| `finder.html` | ~29 KB | Gift-finder quiz |
 | `michali-os.html` | ~55 KB | "מיכלי OS" life-game app |
 | `main.py` | ~3 KB | Flask WhatsApp bot |
 | `requirements.txt` | 3 lines | `flask`, `requests`, `gunicorn` |
+| `images/` | README only | Where the 52 missing product photos go; `README.md` lists every required filename |
 
-There is no `README`, no `.github/` directory, no CI/CD, no `images/` directory, and no lockfile.
+There is no `README` at the repo root, no `.github/` directory, no CI/CD, and no lockfile. `logo.png` is referenced but absent; both `<img>` tags that use it have working `onerror` handlers, so the header falls back to a text logo.
 
 ## Commands
 
@@ -66,7 +67,7 @@ Loaded by `index.html` and `finder.html` (line 221). To add/edit products, edit 
 | `p` | `price` | Price string — format is inconsistent, see below |
 | `t` | `tags`, `productCategory` (first tag) | Category tags (Hebrew) |
 | `aud` | — | Audience keys: `woman`, `man`, `kid`, `teen`, `baby`, `family`, `boss`, `teacher` |
-| `img` | `thumbnailUrl` | Base64 data URI, `images/NN.jpg` path, or `""` |
+| `img` | `thumbnailUrl` | Base64 data URI (53 products) or an `images/NN.jpg` path (52). Never empty |
 | `wa` | — | Pre-built `wa.me` order link with URL-encoded Hebrew order template |
 | `bundle` | — | Optional `true` on the 3 "מארז" products — styles the card and switches its CTA to "לבניית מארז בוואטסאפ" |
 
@@ -74,7 +75,13 @@ Normalization also stamps `id` (`p0`, `p1`, …), `showClient: true`, and `brand
 
 The eight tags in use, by frequency: `לבית` (51), `כוסות ובקבוקים` (17), `אירועים ומזכרות` (16), `ילדים` (13), `מארזים` (13), `חגים` (11), `מורות וגננות` (3), `אהבה וזוגיות` (2).
 
-**Gotcha — missing images.** 47 products reference `images/NN.jpg`, but there is no `images/` directory in this repo — those thumbnails 404 unless the images are deployed alongside the pages. 53 products embed base64 data URIs, and 5 have `"img": ""`. Every surface degrades gracefully: the catalog grid swaps a failed or empty image for the striped "תמונה בקרוב" placeholder, and the finder and widget show a placeholder or nothing.
+**Gotcha — half the photos are missing.** 53 products embed a base64 data URI; the other 52 point at `images/NN.jpg`, and those files are not in the repo, so every one of them 404s until the photos are added. Nothing breaks: each surface falls back to an icon, so a missing photo never shows a broken-image icon.
+
+- **Catalog grid**: the designed `.ph` card — category icon, product name, and a "תמונה בקרוב" chip on a rose-to-plum gradient.
+- **Finder**: the category icon on a gradient tile (`.prod-thumb.empty`).
+- **Chat widget**: the small 💝 tile (`.mprod .ph`).
+
+`images/README.md` lists every required filename grouped by category. Dropping a correctly named file into `images/` is all it takes — no code change, because every product already carries its path.
 
 **Gotcha — price strings are not uniform.** 39 distinct values across three shapes: `"₪89"` (most), bare digits `"119"`, and non-numeric `"מחיר בהתאמה"` / `"בהתאמה"` / `"עד ₪100"` / `"עד ₪60"`. Both budget filters parse with the same rule — strip every non-digit and `parseInt` — so `"עד ₪100"` reads as 100, and anything with no digits parses to `null` and is treated as *matching every budget*. Keep new prices in the `"₪NN"` shape.
 
@@ -85,12 +92,14 @@ Static marketing page (hero, USP strip, footer) plus `<div class="grid" id="grid
 Three scripts run in order, and that order matters:
 
 1. `<script src="products.js">` — populates `window.MINOLA_PRODUCTS`.
-2. **The grid renderer** — maps every product to an `<article class="card">` carrying the same `data-tags` / `data-name` attributes the filter relies on, plus its `wa.me` order link. Bundles get `class="card bundle"` and the "לבניית מארז בוואטסאפ" CTA. After rendering it attaches an `error` listener to each image so a 404 becomes the `.ph` placeholder instead of a broken-image icon.
+2. **The grid renderer** — maps every product to an `<article class="card">` carrying the same `data-tags` / `data-name` attributes the filter relies on, plus its `wa.me` order link. Bundles get `class="card bundle"` and the "לבניית מארז בוואטסאפ" CTA. It then attaches an `error` listener to each image so a 404 becomes the designed `.ph` card, and fills the hero collage with the first four products that have an embedded base64 image, so the hero never depends on a file that might be missing.
 3. **The search/chip filter** — a pure DOM filter over the rendered cards: a search box (`#q`) plus category chips (`.chip[data-cat]`, nine categories) that show/hide by substring match on those attributes.
 
 The filter captures `document.querySelectorAll('.card')` once at parse time, so it **must stay after the renderer**. Moving the `products.js` include back to the bottom of the page (where it used to live) silently yields an empty catalog.
 
 At the bottom is the embedded chat-widget "gift assistant" (`#mbot`): a scripted quick-reply flow (recipient → budget) that filters `window.MINOLA_PRODUCTS` by the `aud` array and parsed price, shows up to 6 matches as `wa.me` links, and falls back to a human-handoff WhatsApp link when nothing matches.
+
+**Don't remove `#mbot[hidden]{display:none}`.** The panel is markup-hidden with the `hidden` attribute, but `#mbot{...display:flex}` is an author rule and beats the user-agent `[hidden]{display:none}`. Without that one line the chat panel is stuck open on every page load, covering a fifth of the desktop viewport and 94% of a phone screen.
 
 ### finder.html — gift-finder quiz
 
@@ -100,6 +109,7 @@ A mobile-phone-styled (393px shell) multi-screen quiz app: splash → 3 question
 - `renderResults()` filters `window.MINOLA_ITEMS` by `showClient`, by `RECIPIENT_CATS[recipient]` matched against `item.tags`, and by budget. **It filters on tags, while the `index.html` chat widget filters the same nine recipients on `aud`** — two different mechanisms for the same question, so the same answer can yield different products on the two surfaces. Results sort `brandFeatured` first and cap at 30 cards.
 - The `quantity` answer does not affect results at all; it only appears in the WhatsApp message.
 - Tapping cards toggles them into `pickedIds`; `updateWA()` rebuilds the WhatsApp link from `window.MINOLA_PHONE` with recipient/quantity/budget labels plus the picked product names.
+- Each thumbnail gets an `error` handler that swaps the `<img>` for the category icon from `THUMB_ICON` on a gradient tile, so a missing photo never shows as broken.
 - If `window.MINOLA_ITEMS` is missing, the empty state says "השרת לא זמין" ("server unavailable") — misleading, since there is no server; it means `products.js` failed to load.
 
 `index.html` links to `finder.html` once; `finder.html` links back twice.
@@ -133,7 +143,7 @@ The static pages need none. `main.py` reads four env vars at runtime:
 ## Deployment
 
 - The bot targets a platform like Render or Railway (binds `0.0.0.0` on `$PORT`, `gunicorn` in requirements).
-- The static pages need any static host — plus an `images/` directory for the 47 path-referenced thumbnails.
+- The static pages need any static host. Deploy `images/` alongside them once the photos exist; until then the pages render fine without it.
 - A GitHub Pages deploy workflow was added and then removed (the token couldn't auto-enable Pages) — there is currently no CI/CD in the repo.
 
 ## Conventions
