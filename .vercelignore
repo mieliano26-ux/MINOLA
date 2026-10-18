@@ -1,0 +1,6 @@
+# הבוט הישן (Flask) לא נפרס ב-Vercel. בלי השורות האלה Vercel מזהה את הריפו
+# כאפליקציית Python ומפסיק להגיש את קובצי ה-HTML של החנות.
+main.py
+requirements.txt
+docs/
+CLAUDE.md

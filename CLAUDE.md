@@ -21,6 +21,9 @@ Whole repo, at a glance:
 | `finder.html` | ~29 KB | Gift-finder quiz |
 | `michali-os.html` | ~55 KB | "מיכלי OS" life-game app |
 | `main.py` | ~3 KB | Flask WhatsApp bot |
+| `privacy.html` | ~7 KB | Privacy policy + data-deletion instructions (required by Meta for the Cloud API app) |
+| `api/webhook.js` | ~2 KB | Vercel serverless webhook for WhatsApp Cloud API — GET verify, POST log-and-ack. Needs `VERIFY_TOKEN` in Vercel |
+| `docs/whatsapp-self-build.md` | — | Plan + status memory for the "וואטסאפ עצמאי" project (own Meta app instead of LetsBot). Update after each stage |
 | `requirements.txt` | 3 lines | `flask`, `requests`, `gunicorn` |
 | `images/` | README only | Where the 52 missing product photos go; `README.md` lists every required filename |
 
